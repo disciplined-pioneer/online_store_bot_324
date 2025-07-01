@@ -4,9 +4,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-data/custom_engraving/.gitignore
-data/paintings_metal/.gitignore
-
+data/custom_engraving/
+data/paintings_metal/
+media_store.json
 
 # C extensions
 *.so

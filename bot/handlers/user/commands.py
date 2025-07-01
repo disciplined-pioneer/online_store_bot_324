@@ -36,7 +36,7 @@ async def cmd_start(message: Message, state: FSMContext):
     name = message.from_user.full_name
     await save_or_update_user(tg_id=tg_id, name=name)
 
-    await message.answer(
+    new_msg = await message.answer(
         text=hello_user_msg,
         reply_markup=await start_user_keyb(bot)
     )
@@ -47,13 +47,15 @@ async def cmd_start(message: Message, state: FSMContext):
     role = info_users.role
 
     if role == 'admin': # Админ
-        await message.answer(
+        new_msg = await message.answer(
             text=hello_admin_msg,
             reply_markup=start_admin_keyb
         )
 
     else: # Пользователь
-        await message.answer(
+        new_msg = await message.answer(
             text=hello_user_msg,
             reply_markup=await start_user_keyb(bot)
         )"""
+    
+    await state.update_data(last_id_message=new_msg.message_id)
