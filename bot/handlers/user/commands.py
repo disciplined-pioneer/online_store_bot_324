@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 from settings import settings
 
 from core.bot import bot
+from db.models.models import Users
 from services.user.commands import save_or_update_user
 from bot.templates.user.commands import hello_user_msg
 from bot.keyboards.user.commands import start_user_keyb
@@ -37,17 +38,22 @@ async def cmd_start(message: Message, state: FSMContext):
 
     await message.answer(
         text=hello_user_msg,
-        reply_markup=start_user_keyb
+        reply_markup=await start_user_keyb(bot)
     )
 
-    """# Проверка на админа
-    if message.from_user.id in settings.bot.ADMINS:
+    """# Информация о пользователе
+    tg_id = message.from_user.id
+    info_users = await Users.get(tg_id=tg_id)
+    role = info_users.role
+
+    if role == 'admin': # Админ
         await message.answer(
             text=hello_admin_msg,
             reply_markup=start_admin_keyb
         )
-    else:
+
+    else: # Пользователь
         await message.answer(
             text=hello_user_msg,
-            reply_markup=start_user_keyb
+            reply_markup=await start_user_keyb(bot)
         )"""

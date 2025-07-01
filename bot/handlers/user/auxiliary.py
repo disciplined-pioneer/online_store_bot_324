@@ -1,36 +1,53 @@
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 
+from settings import settings
 from db.models.models import Users
-from bot.keyboards.user.commands import start_keyb, admin_keyb
-from bot.templates.user.commands import select_option_message, select_language_message
+from aiogram.types import CallbackQuery
+
+from core.bot import bot
+from bot.templates.user.commands import hello_user_msg
+from bot.keyboards.user.commands import start_user_keyb
+
+from bot.templates.admin.commands import hello_admin_msg
+from bot.keyboards.admin.commands import start_admin_keyb
 
 
 router = Router()
 
 
 # Обработка кнопки "Меню"
-@router.callback_query(F.data == "go_back_menu")
+@router.callback_query(F.data == "back_menu")
 async def back_buttons(callback: types.CallbackQuery, state: FSMContext):
 
+    # Информация о пользователе
     tg_id = callback.from_user.id
     info_users = await Users.get(tg_id=tg_id)
     role = info_users.role
 
     if role == 'admin': # Админ
         await callback.message.edit_text(
-            text=select_option_message,
-            reply_markup=admin_keyb
+            text=hello_admin_msg,
+            reply_markup=start_admin_keyb
         )
 
     else: # Пользователь
         await callback.message.edit_text(
-            text=select_language_message,
-            reply_markup=start_keyb
+            text=hello_user_msg,
+            reply_markup=await start_user_keyb(bot)
         )
 
     await state.clear()
     await callback.answer()
+
+
+# Когда поддержка недоступна
+@router.callback_query(F.data == "support_unavailable")
+async def support_unavailable_cb(query: CallbackQuery):
+    await query.answer(
+        "Поддержка временно недоступна ⏳",
+        show_alert=True
+    )
 
 
 # Удаление сообщений, не подключённых к состоянию
