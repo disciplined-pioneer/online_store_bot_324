@@ -8,7 +8,7 @@ from settings import settings
 from bot.handlers import routers
 
 from db.crud.base import init_postgres
-from services.user.commands import add_admins
+from services.user.commands import add_admins, create_data_folders
 
 dp = Dispatcher()
 
@@ -25,6 +25,7 @@ async def main():
     await init_postgres()
 
     await add_admins() # Добавление админов
+    create_data_folders()
         
     await bot.set_my_commands(
         commands=settings.bot.COMMANDS,

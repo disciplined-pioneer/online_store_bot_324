@@ -1,3 +1,4 @@
+import os
 import logging
 from db.models.models import Users
 from settings import settings
@@ -34,3 +35,20 @@ async def save_or_update_user(tg_id, name):
     except Exception as e:
         logging.error(f'Пользователь {tg_id} не был добавлен: {e}')
         
+
+def create_data_folders():
+
+    """Создание папок для хранения файлов"""
+
+    base_path = 'data'
+    folders = ['custom_engraving', 'paintings_metal']
+
+    # Создаем папку data, если нет
+    if not os.path.exists(base_path):
+        os.mkdir(base_path)
+
+    # Создаем вложенные папки, если нет
+    for folder in folders:
+        path = os.path.join(base_path, folder)
+        if not os.path.exists(path):
+            os.mkdir(path)

@@ -4,6 +4,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+data/custom_engraving/.gitignore
+data/paintings_metal/.gitignore
+
+
 # C extensions
 *.so
 
