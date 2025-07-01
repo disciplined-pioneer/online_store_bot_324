@@ -30,10 +30,6 @@ class BotConfig(BaseSettings):
         BotCommand(command='start', description='Запустить бота 🚀')
     ]
 
-    @property
-    def SUPPORT_LINK(self) -> str:
-        return f'tg://user?id={self.SUPPORT_ID}'
-
     class Config:
         env_prefix = 'BOT_'
         env_file = '.env'
