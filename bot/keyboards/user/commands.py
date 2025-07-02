@@ -7,7 +7,7 @@ async def start_user_keyb(bot):
     chanel_link = settings.bot.CHANEL_LINK
     base_buttons = [
         [InlineKeyboardButton(text="Примеры работ", callback_data='examples')],
-        [InlineKeyboardButton(text="Заказать", callback_data='order')],
+        [InlineKeyboardButton(text="Сделать заказ", callback_data='make_order')],
         [InlineKeyboardButton(text="Мои заказы", callback_data='my_orders')],
         [InlineKeyboardButton(text="Отзывы", url=chanel_link)],
     ]

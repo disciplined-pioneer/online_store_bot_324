@@ -23,6 +23,7 @@ class PostgresConfig(BaseSettings):
 class BotConfig(BaseSettings):
     TOKEN: str
     CHANEL_ID: int
+    MANAGER_ID: int
     CHANEL_LINK: str
     ADMINS: list[int] | None = []
     SUPPORT_ID: int

@@ -79,6 +79,16 @@ async def support_unavailable_cb(query: CallbackQuery):
     )
 
 
+# Когда менеджер недоступен
+@router.callback_query(F.data == "manager_unavailable")
+async def support_unavailable_cb(query: CallbackQuery):
+    await query.answer(
+        "Менеджер временно недоступен ⏳",
+        show_alert=True
+    )
+
+
+
 # Удаление сообщений, не подключённых к состоянию
 @router.message()
 async def handle_unexpected_message(message: types.Message, state: FSMContext):
