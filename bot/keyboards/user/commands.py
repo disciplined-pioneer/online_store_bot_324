@@ -1,4 +1,4 @@
-from settings import settings
+from ...settings import settings
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.exceptions import TelegramBadRequest
 

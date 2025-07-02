@@ -2,11 +2,11 @@ from aiogram import Router, F, types
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 
-from bot.keyboards.user.examples import *
-from bot.templates.user.examples import examples_text
+from ...keyboards.user.examples import *
+from ...templates.user.examples import examples_text
 
-from core.bot import bot
-from utils.user.examples import *
+from ...core.bot import bot
+from ...utils.user.examples import *
 
 
 router = Router()

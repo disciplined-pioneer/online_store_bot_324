@@ -1,16 +1,16 @@
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 
-from settings import settings
-from db.models.models import Users
+from ...settings import settings
+from ...db.models.models import Users
 from aiogram.types import CallbackQuery
 
-from core.bot import bot
-from bot.templates.user.commands import hello_user_msg
-from bot.keyboards.user.commands import start_user_keyb
+from ...core.bot import bot
+from ...templates.user.commands import hello_user_msg
+from ...keyboards.user.commands import start_user_keyb
 
-from bot.templates.admin.commands import hello_admin_msg
-from bot.keyboards.admin.commands import start_admin_keyb
+from ...templates.admin.commands import hello_admin_msg
+from ...keyboards.admin.commands import start_admin_keyb
 
 
 router = Router()

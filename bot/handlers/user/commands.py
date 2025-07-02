@@ -2,16 +2,15 @@ from aiogram import Router, F, types
 from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
-from settings import settings
+from ...settings import settings
 
-from core.bot import bot
-from db.models.models import Users
-from services.user.commands import save_or_update_user
-from bot.templates.user.commands import hello_user_msg
-from bot.keyboards.user.commands import start_user_keyb
+from ...core.bot import bot
+from ...services.user.commands import save_or_update_user
+from ...templates.user.commands import hello_user_msg
+from ...keyboards.user.commands import start_user_keyb
 
-from bot.templates.admin.commands import hello_admin_msg
-from bot.keyboards.admin.commands import start_admin_keyb
+from ...templates.admin.commands import hello_admin_msg
+from ...keyboards.admin.commands import start_admin_keyb
 
 
 router = Router()
