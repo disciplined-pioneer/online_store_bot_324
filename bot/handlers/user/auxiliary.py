@@ -41,6 +41,35 @@ async def back_buttons(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
+# Обработка кнопки "Меню" - когда в сообщении изображение
+@router.callback_query(F.data == "back_menu:images")
+async def back_buttons_images(callback: types.CallbackQuery, state: FSMContext):
+
+    # Данные
+    data = await state.get_data()
+    last_id_message = data.get('last_id_message')
+
+    # Информация о пользователе
+    tg_id = callback.from_user.id
+    info_users = await Users.get(tg_id=tg_id)
+    role = info_users.role
+
+    if role == 'admin': # Админ
+        await callback.message.answer(
+            text=hello_admin_msg,
+            reply_markup=start_admin_keyb
+        )
+
+    else: # Пользователь
+        await callback.message.answer(
+            text=hello_user_msg,
+            reply_markup=await start_user_keyb(bot)
+        )
+
+    await bot.delete_message(chat_id=callback.from_user.id, message_id=last_id_message)
+    await state.clear()
+
+
 # Когда поддержка недоступна
 @router.callback_query(F.data == "support_unavailable")
 async def support_unavailable_cb(query: CallbackQuery):

@@ -18,6 +18,7 @@ def create_pagination_keyboard(category: str, current_index: int, total: int) ->
     row_1 = []
     row_2 = []
     row_3 = []
+    row_4 = []
 
     # Кнопка "Назад"
     if current_index > 1:
@@ -35,14 +36,20 @@ def create_pagination_keyboard(category: str, current_index: int, total: int) ->
 
     # Кнопка "Примеры работ" — возврат к списку категорий
     row_2.append(InlineKeyboardButton(
+        text=f"{current_index}/{total}",
+        callback_data="numbering"
+    ))
+
+    # Кнопка "Примеры работ" — возврат к списку категорий
+    row_3.append(InlineKeyboardButton(
         text="Примеры работ",
         callback_data="examples"
     ))
 
     # Кнопка "Меню" — возврат к пункту 1
-    row_3.append(InlineKeyboardButton(
+    row_4.append(InlineKeyboardButton(
         text="🔙 Меню",
-        callback_data="start"
+        callback_data="back_menu:images"
     ))
 
-    return InlineKeyboardMarkup(inline_keyboard=[row_1, row_2, row_3])
+    return InlineKeyboardMarkup(inline_keyboard=[row_1, row_2, row_3, row_4])

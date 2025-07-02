@@ -19,11 +19,11 @@ async def examples(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     last_id_message = data.get('last_id_message')
 
-    await bot.delete_message(chat_id=callback.from_user.id, message_id=last_id_message)
     new_msg = await callback.message.answer(
         text=examples_text,
         reply_markup=examples_menu
     )
+    await bot.delete_message(chat_id=callback.from_user.id, message_id=last_id_message)
     await state.update_data(last_id_message=new_msg.message_id)
 
 
