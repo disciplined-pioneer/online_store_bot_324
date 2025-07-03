@@ -69,9 +69,10 @@ async def handle_photo(message: Message, state: FSMContext):
             await bot.edit_message_text(
                 chat_id=message.from_user.id,
                 message_id=last_id_message,
-                text="✅ Изображение принято"
+                text=enter_copies_count_text
             )
             await state.set_state(OrderDetailsStates.number_copies) 
+            await state.update_data(file_info={'file_id': photo.file_id, 'type': 'photo'})
         else:
             await bot.edit_message_text(
                 chat_id=message.from_user.id,
@@ -98,9 +99,10 @@ async def handle_document_image(message: Message, state: FSMContext):
             await bot.edit_message_text(
                 chat_id=message.from_user.id,
                 message_id=last_id_message,
-                text="✅ Изображение принято"
+                text=enter_copies_count_text
             )
-            await state.set_state(OrderDetailsStates.number_copies) 
+            await state.set_state(OrderDetailsStates.number_copies)
+            await state.update_data(file_info={'file_id': message.document.file_id, 'type': 'photo'})
         else:
             await bot.edit_message_text(
                 chat_id=message.from_user.id,
@@ -109,3 +111,43 @@ async def handle_document_image(message: Message, state: FSMContext):
             )
     except:
         return
+    
+
+# Обрабатываем количество копий
+@router.message(OrderDetailsStates.number_copies)
+async def process_copies_count(message: types.Message, state: FSMContext):
+
+    try:
+        # Данные
+        await message.delete()
+        data = await state.get_data()
+        last_id_message = data.get('last_id_message')
+        text = message.text.strip()
+
+        if not text.isdigit():
+            await bot.edit_message_text(
+                chat_id=message.from_user.id,
+                message_id=last_id_message,
+                text=invalid_integer_input_text
+            )
+            return
+
+        count = int(text)
+        if count < 1:
+            await bot.edit_message_text(
+                chat_id=message.from_user.id,
+                message_id=last_id_message,
+                text=copies_count_minimum_error_text
+            )
+            return
+    except:
+        return
+
+    # Всё ок, сохраняем в состояние
+    await state.set_state(None)
+    await state.update_data(copies_count=count)
+    await bot.edit_message_text(
+        chat_id=message.from_user.id,
+        message_id=last_id_message,
+        text=f"✅ Количество копий установлено: {count}"
+    )
