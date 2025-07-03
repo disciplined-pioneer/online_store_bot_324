@@ -75,9 +75,3 @@ async def paginate(callback: CallbackQuery, state: FSMContext):
     await state.update_data(last_id_message=new_msg.message_id)
     await callback.answer()
 
-
-# Обрабатывает подтверждение заказа по выбранному товару.
-@router.callback_query(F.data.regexp(r"^order_confirm:(\d+)$"))
-async def confirm_order(callback: CallbackQuery, state: FSMContext):
-    index = int(callback.data.split(":")[1])
-    await callback.answer(f"Вы выбрали заказать товар №{index}. В ближайшее время с вами свяжутся.", show_alert=True)

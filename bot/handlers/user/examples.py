@@ -1,12 +1,10 @@
-from aiogram import Router, F, types
+from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 
+from ...utils.user.examples import *
 from ...keyboards.user.examples import *
 from ...templates.user.examples import examples_text
-
-from ...core.bot import bot
-from ...utils.user.examples import *
 
 
 router = Router()
@@ -15,24 +13,18 @@ router = Router()
 # Обработка кнопки "Примеры"
 @router.callback_query(F.data == "examples")
 async def examples(callback: CallbackQuery, state: FSMContext):
-
-    data = await state.get_data()
-    last_id_message = data.get('last_id_message')
-
+    
     new_msg = await callback.message.answer(
         text=examples_text,
         reply_markup=examples_menu
     )
-    await bot.delete_message(chat_id=callback.from_user.id, message_id=last_id_message)
+    await callback.message.delete()
     await state.update_data(last_id_message=new_msg.message_id)
 
 
 # Обработка начала просмотра (только если строго "viewing:..." без номера)
 @router.callback_query(F.data.in_(CATEGORIES.keys()))
 async def handle_start_viewing(callback: CallbackQuery, state: FSMContext):
-
-    data = await state.get_data()
-    last_id_message = data.get('last_id_message')
 
     category_key = callback.data
     folder = CATEGORIES[category_key]
@@ -45,7 +37,7 @@ async def handle_start_viewing(callback: CallbackQuery, state: FSMContext):
     # Формировние сообщения
     keyboard = create_pagination_keyboard(category_key, 1, total)
     new_msg = await media.send(callback.message, reply_markup=keyboard)
-    await bot.delete_message(chat_id=callback.from_user.id, message_id=last_id_message)
+    await callback.message.delete()
     await state.update_data(last_id_message=new_msg.message_id)
 
 
@@ -77,5 +69,5 @@ async def paginate(callback: CallbackQuery, state: FSMContext):
     # Формировние сообщения
     keyboard = create_pagination_keyboard(category_key, index, total)
     new_msg = await media.send(callback.message, reply_markup=keyboard)
-    await bot.delete_message(chat_id=callback.from_user.id, message_id=last_id_message)
+    await callback.message.delete()
     await state.update_data(last_id_message=new_msg.message_id)

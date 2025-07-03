@@ -1,7 +1,6 @@
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
 
-from ...settings import settings
 from ...db.models.models import Users
 from aiogram.types import CallbackQuery
 
@@ -66,7 +65,7 @@ async def back_buttons_images(callback: types.CallbackQuery, state: FSMContext):
             reply_markup=await start_user_keyb(bot)
         )
 
-    await bot.delete_message(chat_id=callback.from_user.id, message_id=last_id_message)
+    await callback.message.delete()
     await state.clear()
 
 
@@ -86,7 +85,6 @@ async def support_unavailable_cb(query: CallbackQuery):
         "Менеджер временно недоступен ⏳",
         show_alert=True
     )
-
 
 
 # Удаление сообщений, не подключённых к состоянию

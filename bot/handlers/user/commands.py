@@ -1,8 +1,7 @@
-from aiogram import Router, F, types
+from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
-from ...settings import settings
 
 from ...core.bot import bot
 from ...services.user.commands import save_or_update_user
