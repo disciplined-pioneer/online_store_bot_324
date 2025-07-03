@@ -33,7 +33,7 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext):
 
 # Обработка выбранного размера изображения
 @router.callback_query(F.data.startswith("size:"))
-async def image_size(callback: types.CallbackQuery, state: FSMContext):
+async def image_sizef(callback: types.CallbackQuery, state: FSMContext):
 
     # Данные
     data = await state.get_data()
@@ -42,7 +42,7 @@ async def image_size(callback: types.CallbackQuery, state: FSMContext):
 
     new_msg = await callback.message.edit_text(
         text=add_image_instruction,
-        reply_markup=get_order_confirmation_keyboard(number_order)
+        reply_markup=previous_stepn_keyboard(f'order_confirm:{number_order}')
     )
 
     await state.update_data(
@@ -59,6 +59,8 @@ async def handle_photo(message: Message, state: FSMContext):
     # Данные
     await message.delete()
     data = await state.get_data()
+    image_size = data.get('image_size')
+    number_order = data.get('number_order', 1)
     last_id_message = data.get('last_id_message')
     photo = message.photo[-1]
     file_info = await message.bot.get_file(photo.file_id)
@@ -69,7 +71,8 @@ async def handle_photo(message: Message, state: FSMContext):
             await bot.edit_message_text(
                 chat_id=message.from_user.id,
                 message_id=last_id_message,
-                text=enter_copies_count_text
+                text=enter_copies_count_text,
+                reply_markup=previous_stepn_keyboard(f'size:{image_size}')
             )
             await state.set_state(OrderDetailsStates.number_copies) 
             await state.update_data(file_info={'file_id': photo.file_id, 'type': 'photo'})
@@ -77,7 +80,8 @@ async def handle_photo(message: Message, state: FSMContext):
             await bot.edit_message_text(
                 chat_id=message.from_user.id,
                 message_id=last_id_message,
-                text=invalid_image_format_text
+                text=invalid_image_format_text,
+                reply_markup=previous_stepn_keyboard(f'order_confirm:{number_order}')
             )
     except:
         return
@@ -90,6 +94,8 @@ async def handle_document_image(message: Message, state: FSMContext):
     # Данные
     await message.delete()
     data = await state.get_data()
+    image_size = data.get('image_size')
+    number_order = data.get('number_order', 1)
     last_id_message = data.get('last_id_message')
 
     mime_type = message.document.mime_type
@@ -99,7 +105,8 @@ async def handle_document_image(message: Message, state: FSMContext):
             await bot.edit_message_text(
                 chat_id=message.from_user.id,
                 message_id=last_id_message,
-                text=enter_copies_count_text
+                text=enter_copies_count_text,
+                reply_markup=previous_stepn_keyboard(f'size:{image_size}')
             )
             await state.set_state(OrderDetailsStates.number_copies)
             await state.update_data(file_info={'file_id': message.document.file_id, 'type': 'photo'})
@@ -107,7 +114,8 @@ async def handle_document_image(message: Message, state: FSMContext):
             await bot.edit_message_text(
                 chat_id=message.from_user.id,
                 message_id=last_id_message,
-                text=invalid_image_format_text
+                text=invalid_image_format_text,
+                reply_markup=previous_stepn_keyboard(f'order_confirm:{number_order}')
             )
     except:
         return
@@ -121,6 +129,7 @@ async def process_copies_count(message: types.Message, state: FSMContext):
         # Данные
         await message.delete()
         data = await state.get_data()
+        image_size = data.get('image_size')
         last_id_message = data.get('last_id_message')
         text = message.text.strip()
 
@@ -128,7 +137,8 @@ async def process_copies_count(message: types.Message, state: FSMContext):
             await bot.edit_message_text(
                 chat_id=message.from_user.id,
                 message_id=last_id_message,
-                text=invalid_integer_input_text
+                text=invalid_integer_input_text,
+                reply_markup=previous_stepn_keyboard(f'size:{image_size}')
             )
             return
 
@@ -137,7 +147,8 @@ async def process_copies_count(message: types.Message, state: FSMContext):
             await bot.edit_message_text(
                 chat_id=message.from_user.id,
                 message_id=last_id_message,
-                text=copies_count_minimum_error_text
+                text=copies_count_minimum_error_text,
+                reply_markup=previous_stepn_keyboard(f'size:{image_size}')
             )
             return
     except:
@@ -149,5 +160,20 @@ async def process_copies_count(message: types.Message, state: FSMContext):
     await bot.edit_message_text(
         chat_id=message.from_user.id,
         message_id=last_id_message,
-        text=f"✅ Количество копий установлено: {count}"
+        text=choose_delivery_method_text,
+        reply_markup=delivery_pickup_menu
     )
+
+
+# Обработка кнопки "Назад" для количества копий
+@router.callback_query(F.data == "return_copies")
+async def previous_step(callback: types.CallbackQuery, state: FSMContext):
+
+    data = await state.get_data()
+    image_size = data.get('image_size')
+
+    await callback.message.edit_text(
+        text=enter_copies_count_text,
+        reply_markup=previous_stepn_keyboard(f'size:{image_size}')
+    )
+    await state.set_state(OrderDetailsStates.number_copies)
