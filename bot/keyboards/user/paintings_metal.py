@@ -29,7 +29,6 @@ def create_product_keyboard(category: str, current_index: int, total: int) -> In
         ))
 
     # Кнопка "Вперёд"
-    print(f"{category}:{current_index + 1}")
     if not is_last:
         row_1.append(InlineKeyboardButton(
             text="Вперёд ➡️",

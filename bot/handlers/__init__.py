@@ -7,9 +7,9 @@ from .user.order import router as order
 
 routers = [
     commands,
-    auxiliary,
     custom_engraving,
     paintings_metal,
     order,
-    examples
+    examples,
+    auxiliary,
 ]

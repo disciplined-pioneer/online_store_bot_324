@@ -8,3 +8,13 @@ size_selection_menu = InlineKeyboardMarkup(
         [InlineKeyboardButton(text="🔙 Меню", callback_data="back_menu")]
     ]
 )
+
+def get_order_confirmation_keyboard(number_order: int = 1):
+
+    keyb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="Назад", callback_data=f"order_confirm:{number_order}")],
+            [InlineKeyboardButton(text="🔙 Меню", callback_data="back_menu")]
+        ]
+    )
+    return keyb
