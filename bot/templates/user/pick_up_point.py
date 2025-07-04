@@ -43,7 +43,7 @@ def build_user_address_text(user_address: str) -> str:
 invalid_city_name_text = "Не похоже на название города. Пожалуйста, укажите название города кириллицей"
 
 def user_city_text(city: str) -> str:
-    return f'Ваш город проживания: {city}'
+    return f'Ваш город проживания: "{city}"'
 
 edit_address_prompts_text = {
     'city': 'Укажите новый город',
@@ -53,3 +53,9 @@ edit_address_prompts_text = {
 
 def get_value_changed_text(new_value: str) -> str:
     return f'✅ Значение было изменено на "{new_value}"'
+
+INVALID_INPUT_MESSAGES = {
+    "city": "❌ Не похоже на название города. Пожалуйста, укажите название города кириллицей.",
+    "street": "❌ Не похоже на название улицы. Пожалуйста, укажите название улицы кириллицей.",
+    "house": "❌ Не похоже на номер дома. Допустимы кириллица, цифры, символы '-' и '/'."
+}

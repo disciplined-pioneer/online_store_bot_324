@@ -20,6 +20,15 @@ delivery_pickup_menu = InlineKeyboardMarkup(
     ]
 )
 
+def payment_keyb(price: int = 1):
+
+    keyb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="Оплатить", url='https://www.google.com/')],
+            [InlineKeyboardButton(text="Назад", callback_data="alternative_back:selection_pick-up_point")],
+        ]
+    )
+    return keyb
 
 async def create_edit_geolocation_keyboard(bot):
     
@@ -27,7 +36,7 @@ async def create_edit_geolocation_keyboard(bot):
         [InlineKeyboardButton(text="Город", callback_data="edit_geolocation:city")],
         [InlineKeyboardButton(text="Улица", callback_data="edit_geolocation:street")],
         [InlineKeyboardButton(text="Дом", callback_data="edit_geolocation:house")],
-        [InlineKeyboardButton(text="Всё верно", callback_data="everything_correc")]
+        [InlineKeyboardButton(text="Всё верно", callback_data="everything_correct")]
     ]
 
     try:

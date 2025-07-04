@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from ...core.bot import bot
 from ...keyboards.user.order import *
 from ...templates.user.order import *
-from ...utils.user.order import OrderDetailsStates, ALLOWED_IMAGE_FORMATS
+from ...utils.user.order import OrderDetailsStates, ALLOWED_IMAGE_FORMATS, prices_dict
 
 
 router = Router()
@@ -26,6 +26,7 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext):
     
     await state.clear()
     await state.update_data(
+        price=prices_dict[str(index)],
         number_order=index,
         last_id_message=new_msg.message_id
     )

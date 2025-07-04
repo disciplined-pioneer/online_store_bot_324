@@ -6,8 +6,8 @@ from aiogram.fsm.context import FSMContext
 from ...core.bot import bot
 from ...keyboards.user.pick_up_point import *
 from ...templates.user.pick_up_point import *
+from ...utils.user.order import *
 from ...integrations.nominatim.geolocation import get_address_nominatim
-from ...utils.user.order import OrderDetailsStates, PHONE_REGEX, CITY_REGEX
 
 
 router = Router()
@@ -150,20 +150,50 @@ async def alternative_back(callback: types.CallbackQuery, state: FSMContext):
 # Обработка редактирования адреса
 @router.message(OrderDetailsStates.geolocation_edit)
 async def geolocation_edit(message: Message, state: FSMContext):
-
-    # Данные
+    
     await message.delete()
     data = await state.get_data()
-    what_edit = data.get('what_edit')
-    geolocation = data.get('geolocation')
-    last_id_message = data.get('last_id_message')
 
-    geolocation[what_edit] = message.text # Изменяем
-    
+    what_edit = data.get('what_edit')  # city, street, house
+    geolocation = data.get('geolocation', {})
+    last_id_message = data.get('last_id_message')
+    user_input = message.text.strip()
+
+    # Выбор регулярки по типу поля
+    try:
+        if what_edit == "city":
+            pattern = CITY_REGEX
+        elif what_edit == "street":
+            pattern = STREET_REGEX
+        elif what_edit == "house":
+            pattern = HOUSE_REGEX
+        else:
+            await bot.edit_message_text(
+                chat_id=message.from_user.id,
+                message_id=last_id_message,
+                text="❌ Неверный тип редактируемого поля",
+                reply_markup=previous_stepn_keyboard('alternative_back:edit_geolocation')
+            )
+            return
+
+        # Проверка соответствия
+        if not re.fullmatch(pattern, user_input):
+            await bot.edit_message_text(
+                chat_id=message.from_user.id,
+                message_id=last_id_message,
+                text=INVALID_INPUT_MESSAGES[what_edit],
+                reply_markup=previous_stepn_keyboard('alternative_back:edit_geolocation')
+            )
+            return
+    except:
+        return
+
+    # Обновление данных и сообщение об успехе
+    geolocation[what_edit] = user_input
     await bot.edit_message_text(
         chat_id=message.from_user.id,
         message_id=last_id_message,
-        text=get_value_changed_text(message.text),
+        text=get_value_changed_text(user_input),
         reply_markup=previous_stepn_keyboard('alternative_back:edit_geolocation')
     )
     await state.set_state(None)
@@ -204,11 +234,25 @@ async def process_city(message: types.Message, state: FSMContext):
 
 
 # Обработка кнопки "Всё верно"
-@router.callback_query(F.data == "edit_geolocation:")
+@router.callback_query(F.data == "everything_correct")
 async def edit_geolocation(callback: types.CallbackQuery, state: FSMContext):
     
-    pass
+    # Данные
+    data = await state.get_data()
+    pickup = data.get('pickup')
+    price = data.get('price', 1)
 
+    if pickup == 'ozon':
+        await callback.message.edit_text(
+            text='В течение 12 часов после оплаты мы сформируем ваш заказ в приложении Ozon. Вам останется только выбрать удобный пункт выдачи в своём личном кабинете. Спасибо за покупку!',
+            reply_markup=payment_keyb(price)
+        )
+
+    elif pickup == 'yandex':
+        await callback.message.edit_text(
+            text=f'Отлично, общая сумма заказа составляет {price}₽',
+            reply_markup=payment_keyb(price)
+        )
 
 # Назад к выбору пункта выдачи
 @router.callback_query(F.data.startswith("alternative_back:"))
