@@ -72,7 +72,7 @@ async def process_phone_number(message: types.Message, state: FSMContext):
         new_msg = await bot.edit_message_text(
             chat_id=message.from_user.id,
             message_id=last_id_message,
-            text='Укажите город проживания',
+            text=city_request_text,
             reply_markup=previous_stepn_keyboard(f'enter_phone')
         )
         await state.set_state(OrderDetailsStates.city)
@@ -81,7 +81,7 @@ async def process_phone_number(message: types.Message, state: FSMContext):
     elif pickup == 'yandex':
         
         new_msg = await message.answer(
-            text=f'Ваш номер телефона {phone}.\nДля доставки в ПВЗ необходимо определить вашу геолокацию. Пожалуйста, нажмите кнопку ниже, чтобы отправить вашу геолокацию',
+            text=await format_phone_geolocation_text(phone),
             reply_markup=send_location_menu
         )
         await state.set_state(OrderDetailsStates.geolocation)
@@ -100,7 +100,7 @@ async def process_geolocation(message: Message, state: FSMContext):
     location = message.location
     if not location:
         new_msg = await message.answer(
-            text="⚠️ Пожалуйста, отправьте свою геолокацию с помощью кнопки ниже",
+            text=geolocation_required_text,
             reply_markup=send_location_menu
         )
         await state.update_data(last_id_message=new_msg.message_id)
@@ -118,9 +118,11 @@ async def process_geolocation(message: Message, state: FSMContext):
     street = address_data.get("street") or "Неизвестно"
     house = address_data.get("house") or "Неизвестно"
 
+    # Отправка данных
+    await state.set_state(None)
     user_address = f"{city}, {street}, д. {house}"
     new_msg = await message.answer(
-        text=f"📍 Ваш адрес: {user_address}\n\nМожете изменить один из пунктов",
+        text=build_user_address_text(user_address),
         reply_markup=await create_edit_geolocation_keyboard(bot)
     )
     await bot.delete_message(chat_id=message.from_user.id, message_id=last_id_message)
@@ -147,7 +149,7 @@ async def process_city(message: types.Message, state: FSMContext):
             await bot.edit_message_text(
                 chat_id=message.from_user.id,
                 message_id=last_id_message,
-                text="Не похоже на название города. Пожалуйста, укажите название города кириллицей",
+                text=invalid_city_name_text,
                 reply_markup=previous_stepn_keyboard(f'enter_phone')
             )
             return
@@ -160,7 +162,7 @@ async def process_city(message: types.Message, state: FSMContext):
     await bot.edit_message_text(
         chat_id=message.from_user.id,
         message_id=last_id_message,
-        text=f'Ваш город проживания: {city}',
+        text=user_city_text(city),
         reply_markup=await final_menu_keyb(bot)
     )
 
@@ -186,7 +188,7 @@ async def alternative_back(callback: types.CallbackQuery, state: FSMContext):
 
     elif type_choice == 'choice_city':
         await callback.message.edit_text(
-            text='Укажите город проживания',
+            text=city_request_text,
             reply_markup=previous_stepn_keyboard(f'enter_phone')
         )
         await state.set_state(OrderDetailsStates.city)
