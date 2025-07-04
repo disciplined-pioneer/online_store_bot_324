@@ -12,3 +12,4 @@ class OrderDetailsStates(StatesGroup):
     phone_number = State()
     city = State()
     geolocation = State()
+    geolocation_edit = State()

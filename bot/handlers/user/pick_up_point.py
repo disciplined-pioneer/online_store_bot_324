@@ -81,7 +81,7 @@ async def process_phone_number(message: types.Message, state: FSMContext):
     elif pickup == 'yandex':
         
         new_msg = await message.answer(
-            text=await format_phone_geolocation_text(phone),
+            text=format_phone_geolocation_text(phone),
             reply_markup=send_location_menu
         )
         await state.set_state(OrderDetailsStates.geolocation)
@@ -132,7 +132,43 @@ async def process_geolocation(message: Message, state: FSMContext):
         last_id_message=new_msg.message_id,
         geolocation={'city': city, 'street': street, 'house': house}
     )
-        
+
+
+# Обработка выбора редактирования
+@router.callback_query(F.data.startswith("edit_geolocation:"))
+async def alternative_back(callback: types.CallbackQuery, state: FSMContext):
+
+    what_edit = callback.data.split(':')[1]
+    await callback.message.edit_text(
+        text=edit_address_prompts_text[what_edit],
+        reply_markup=previous_stepn_keyboard('alternative_back:edit_geolocation')
+    )
+    await state.update_data(what_edit=what_edit)
+    await state.set_state(OrderDetailsStates.geolocation_edit)
+
+
+# Обработка редактирования адреса
+@router.message(OrderDetailsStates.geolocation_edit)
+async def geolocation_edit(message: Message, state: FSMContext):
+
+    # Данные
+    await message.delete()
+    data = await state.get_data()
+    what_edit = data.get('what_edit')
+    geolocation = data.get('geolocation')
+    last_id_message = data.get('last_id_message')
+
+    geolocation[what_edit] = message.text # Изменяем
+    
+    await bot.edit_message_text(
+        chat_id=message.from_user.id,
+        message_id=last_id_message,
+        text=get_value_changed_text(message.text),
+        reply_markup=previous_stepn_keyboard('alternative_back:edit_geolocation')
+    )
+    await state.set_state(None)
+    await state.update_data(geolocation=geolocation)
+
 
 # Обработка ввода города
 @router.message(OrderDetailsStates.city)
@@ -168,8 +204,9 @@ async def process_city(message: types.Message, state: FSMContext):
 
 
 # Обработка кнопки "Всё верно"
-@router.callback_query(F.data == "everything_correct")
-async def everything_correct(callback: types.CallbackQuery, state: FSMContext):
+@router.callback_query(F.data == "edit_geolocation:")
+async def edit_geolocation(callback: types.CallbackQuery, state: FSMContext):
+    
     pass
 
 
@@ -178,8 +215,9 @@ async def everything_correct(callback: types.CallbackQuery, state: FSMContext):
 async def alternative_back(callback: types.CallbackQuery, state: FSMContext):
 
     await state.set_state(None)
+    data = await state.get_data()
     type_choice = callback.data.split(':')[1]
-
+    
     if type_choice == 'selection_pick-up_point':
         await callback.message.edit_text(
             text=choose_delivery_method_text,
@@ -192,3 +230,14 @@ async def alternative_back(callback: types.CallbackQuery, state: FSMContext):
             reply_markup=previous_stepn_keyboard(f'enter_phone')
         )
         await state.set_state(OrderDetailsStates.city)
+
+    elif type_choice == 'edit_geolocation':
+        geolocation = data.get('geolocation')
+        city = geolocation.get("city") or "Неизвестно"
+        street = geolocation.get("street") or "Неизвестно"
+        house = geolocation.get("house") or "Неизвестно"
+        user_address = f"{city}, {street}, д. {house}"
+        await callback.message.edit_text(
+            text=build_user_address_text(user_address),
+            reply_markup=await create_edit_geolocation_keyboard(bot)
+        )
