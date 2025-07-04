@@ -21,8 +21,8 @@ def previous_stepn_keyboard(parameter: str):
 
 delivery_pickup_menu = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text="ПВЗ Яндекс Маркет", callback_data="pickup_yandex")],
-        [InlineKeyboardButton(text="ПВЗ OZON", callback_data="pickup_ozon")],
+        [InlineKeyboardButton(text="ПВЗ Яндекс Маркет", callback_data="pickup:yandex")],
+        [InlineKeyboardButton(text="ПВЗ OZON", callback_data="pickup:ozon")],
         [InlineKeyboardButton(text="Назад", callback_data="return_copies")],
         [InlineKeyboardButton(text="🔙 Меню", callback_data="back_menu")]
     ]
