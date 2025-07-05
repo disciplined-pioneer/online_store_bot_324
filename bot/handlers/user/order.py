@@ -6,6 +6,7 @@ from aiogram.fsm.context import FSMContext
 from ...core.bot import bot
 from ...keyboards.user.order import *
 from ...templates.user.order import *
+from ...db.models.models import OrderUsers
 from ...utils.user.order import OrderDetailsStates, ALLOWED_IMAGE_FORMATS, prices_dict
 
 
@@ -156,8 +157,16 @@ async def process_copies_count(message: types.Message, state: FSMContext):
     except:
         return
 
+    # Если уже есть хотя бы 1 необработанный заказ, то не включаем доставку
+    all_price = price * count
+    info_order = await OrderUsers.filter(
+        tg_id=message.from_user.id,
+        dispatch_status='not_sent'
+    )
+    if not info_order:
+        all_price += 2000
+
     # Всё ок, сохраняем в состояние
-    all_price = price * count + 200
     await state.set_state(None)
     await state.update_data(copies_count=count, all_price=all_price)
     await bot.edit_message_text(

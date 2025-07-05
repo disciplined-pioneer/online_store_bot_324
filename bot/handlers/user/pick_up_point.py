@@ -7,6 +7,7 @@ from ...core.bot import bot
 from ...utils.user.order import *
 from ...keyboards.user.pick_up_point import *
 from ...templates.user.pick_up_point import *
+from ...utils.user.pick_up_point import start_payment_handler
 from ...integrations.nominatim.geolocation import get_address_nominatim
 
 
@@ -240,20 +241,19 @@ async def edit_geolocation(callback: types.CallbackQuery, state: FSMContext):
     # Данные
     data = await state.get_data()
     pickup = data.get('pickup')
+    tg_id = callback.from_user.id
     all_price = data.get('all_price', 1)
-
-    print(data)
 
     if pickup == 'ozon':
         await callback.message.edit_text(
             text=generate_order_message(all_price),
-            reply_markup=payment_keyb(data)
+            reply_markup=await start_payment_handler(user_id=tg_id, amount=all_price, order_data=data)
         )
 
     elif pickup == 'yandex':
         await callback.message.edit_text(
             text=generate_simple_message(all_price),
-            reply_markup=payment_keyb(data)
+            reply_markup=await start_payment_handler(user_id=tg_id, amount=all_price, order_data=data)
         )
     await state.update_data(all_price=all_price)
 

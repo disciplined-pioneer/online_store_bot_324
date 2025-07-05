@@ -8,6 +8,7 @@ from sqlalchemy.sql import select, update as sqlalchemy_update
 
 from ...db.models.mapped_columns import *
 from ...core.psql import async_db_session, Base
+from sqlalchemy.dialects.postgresql import JSONB
 
 
 T = TypeVar("T")
@@ -182,4 +183,26 @@ class Users(Base, ModelAdmin):
                 )
             )
             return [row.tg_id for row in result]
-           
+        
+
+# Хранение всех заявок
+class OrderUsers(Base, ModelAdmin):
+    
+    __tablename__ = 'order_users'
+
+    id: Mapped[intpk]
+    tg_id: Mapped[int] = mapped_column(BigInteger)
+    name: Mapped[str]
+    price: Mapped[float] = mapped_column(Float)
+    image_size: Mapped[str]
+    copies_count: Mapped[int]
+    phone_number: Mapped[str]
+    geolocation: Mapped[dict] = mapped_column(JSONB)
+    file_info: Mapped[dict] = mapped_column(JSONB)
+    pickup: Mapped[str]
+    dispatch_status: Mapped[str] = mapped_column(
+        default='not_sent',
+        comment='Статус отправки менеджером: not_sent/sent'
+    )
+    last_id_message_group: Mapped[int]
+    last_update: Mapped[datetime] = mapped_column(default=now_moscow)

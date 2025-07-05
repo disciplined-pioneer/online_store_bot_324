@@ -27,10 +27,10 @@ class YookassaPayment:
         :return: Ответ от YooKassa
         """
 
-        # Описание товара
+        # Описание позиции
         product_description = f"Печать: размер {data.get('image_size')}, копий: {data.get('copies_count')}"
 
-        # Позиция чека
+        # Товары в чеке
         items = [{
             "description": product_description,
             "quantity": 1,
@@ -43,33 +43,38 @@ class YookassaPayment:
             "payment_subject": "service"
         }]
 
-        # Данные покупателя
+        # Клиентские данные
         customer = {}
         if phone := data.get("phone_number"):
             customer["phone"] = phone
 
-        # Вся доп. информация в metadata
+        # Плоская metadata
+        geo = data.get("geolocation", {})
+        file_info = data.get("file_info", {})
+
         metadata = {
-            "price_per_copy": data.get("price"),
-            "copies_count": data.get("copies_count"),
-            "image_size": data.get("image_size"),
-            "pickup": data.get("pickup"),
-            "geolocation": data.get("geolocation"),
-            "file_info": data.get("file_info")
+            "price_per_copy": str(data.get("price", "")),
+            "copies_count": str(data.get("copies_count", "")),
+            "image_size": data.get("image_size", ""),
+            "pickup": data.get("pickup", ""),
+            "geolocation_city": geo.get("city", ""),
+            "geolocation_street": geo.get("street", ""),
+            "geolocation_house": geo.get("house", ""),
+            "file_id": file_info.get("file_id", ""),
+            "file_type": file_info.get("type", "")
         }
 
-        # Базовое тело запроса
+        # Сборка основного тела запроса
         json_body = {
             "amount": {"value": str(amount), "currency": "RUB"},
             "capture": True,
             "description": "Печать фото и документов",
             "metadata": metadata,
-            "merchant_customer_id": user_id,
+            "merchant_customer_id": str(user_id)
         }
 
-        if payment_method_id:
-            json_body["payment_method_id"] = payment_method_id
-        else:
+        # Если это первый платёж
+        if not payment_method_id:
             json_body.update({
                 "save_payment_method": True,
                 "test": True,
@@ -82,12 +87,14 @@ class YookassaPayment:
                     "customer": customer
                 }
             })
+        else:
+            json_body["payment_method_id"] = payment_method_id
 
         print(f"[DEBUG] Запрос в YooKassa: {json_body}")
 
         # Отправка запроса
-        async with aiohttp.ClientSession('https://api.yookassa.ru') as s:
-            r = await s.post(
+        async with aiohttp.ClientSession('https://api.yookassa.ru') as session:
+            response = await session.post(
                 auth=self._auth,
                 url="/v3/payments",
                 headers={
@@ -97,11 +104,12 @@ class YookassaPayment:
                 json=json_body
             )
 
-            response_text = await r.text()
+            response_text = await response.text()
             print(f"[DEBUG] Ответ от YooKassa: {response_text}")
-            data = await r.json()
+            data = await response.json()
 
-        if r.status != 200:
+        # Проверка статуса запроса
+        if response.status != 200:
             logger.error("Ошибка при создании платежа в YooKassa: %s", data)
             return {}
 

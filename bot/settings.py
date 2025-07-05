@@ -37,7 +37,7 @@ class BotConfig(BaseSettings):
         extra = 'ignore'
 
 
-class YooKassa:
+class YooKassaConfig(BaseSettings):
     SHOP_ID: str
     TOKEN: str
 
@@ -55,7 +55,7 @@ class Settings:
     def load(self):
         self.postgres = PostgresConfig()
         self.bot = BotConfig()
-        self.yookassa = YooKassa()
+        self.yookassa = YooKassaConfig()
 
     def reload(self):
         self.load()
