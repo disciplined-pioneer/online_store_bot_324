@@ -1,6 +1,6 @@
 from ...settings import settings
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 async def start_user_keyb(bot):
     

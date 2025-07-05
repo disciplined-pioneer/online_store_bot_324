@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, selectinload, load_only
 from sqlalchemy.sql import select, update as sqlalchemy_update
 
 from ...db.models.mapped_columns import *
+from .enum import BillStatus
 from ...core.psql import async_db_session, Base
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -195,7 +196,7 @@ class OrderUsers(Base, ModelAdmin):
     name: Mapped[str]
     price: Mapped[float] = mapped_column(Float)
     image_size: Mapped[str]
-    copies_count: Mapped[int]
+    copies_count: Mapped[str]
     phone_number: Mapped[str]
     geolocation: Mapped[dict] = mapped_column(JSONB)
     file_info: Mapped[dict] = mapped_column(JSONB)
@@ -206,3 +207,15 @@ class OrderUsers(Base, ModelAdmin):
     )
     last_id_message_group: Mapped[int]
     last_update: Mapped[datetime] = mapped_column(default=now_moscow)
+
+
+# Хранение всех счетов
+class Bill(Base, ModelAdmin):
+    
+    __tablename__ = 'bill'
+
+    id: Mapped[intpk]
+    bill_id: Mapped[str] = mapped_column(unique=True)
+    tg_id: Mapped[int] = mapped_column(BigInteger)
+    status: Mapped[BillStatus] = mapped_column(default=BillStatus.PENDING)
+    created_at: Mapped[datetime] = mapped_column(default=now_moscow)
