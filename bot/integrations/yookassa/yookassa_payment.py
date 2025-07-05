@@ -17,55 +17,76 @@ class YookassaPayment:
         password=settings.yookassa.TOKEN
     )
 
-    async def create(self, user_id, amount: float, payment_method_id: str | None = None) -> dict:
+    async def create(self, user_id: str, amount: float, data: dict, payment_method_id: str | None = None) -> dict:
         """
-        Создаёт платёж в ЮKassa
+        Создаёт платёж в YooKassa с деталями заказа.
         :param user_id: ID пользователя
-        :param amount: Сумма платежа
-        :param payment_method_id: ID сохранённого метода оплаты (если есть)
-        :return: Данные платежа от ЮKassa
+        :param amount: Общая сумма платежа (all_price)
+        :param data: Словарь с деталями заказа
+        :param payment_method_id: ID сохранённого метода оплаты
+        :return: Ответ от YooKassa
         """
-        async with aiohttp.ClientSession('https://api.yookassa.ru') as s:
-            # Если указан метод оплаты (ребил)1
-            if payment_method_id:
-                json = {
-                    "amount": {"value": str(amount), "currency": "RUB"},
-                    "capture": True,
-                    "payment_method_id": payment_method_id,
-                    "description": "Интернет магазин",
-                    "merchant_customer_id": user_id,
-                }
-            else:
-                # Первый платёж, с подтверждением через redirect
-                json = {
-                    "amount": {"value": str(amount), "currency": "RUB"},
-                    "save_payment_method": True,
-                    "merchant_customer_id": user_id,
-                    "test": True,
-                    "capture": True,
-                    "description": "Интернет магазин",
-                    "confirmation": {
-                        "type": "redirect",
-                        "return_url": f"https://t.me/{(await bot.get_me()).username}"
-                    },
-                    "receipt": {
-                        "items": [
-                            {
-                                "payment_mode": "full_payment",
-                                "payment_subject": "service",
-                                "description": "Интернет магазин",
-                                "quantity": 1,
-                                "amount": {"value": str(amount), "currency": "RUB"},
-                                "vat_code": 1,
-                            }
-                        ],
-                        "customer": {
-                            "email": "mmlomonosov@gmail.com",  # можно передавать email пользователя
-                        }
-                    },
-                }
 
-            print(f"[DEBUG] Запрос в ЮKassa: {json}")
+        # Описание товара
+        product_description = f"Печать: размер {data.get('image_size')}, копий: {data.get('copies_count')}"
+
+        # Позиция чека
+        items = [{
+            "description": product_description,
+            "quantity": 1,
+            "amount": {
+                "value": str(amount),
+                "currency": "RUB"
+            },
+            "vat_code": 4,  # Без НДС
+            "payment_mode": "full_payment",
+            "payment_subject": "service"
+        }]
+
+        # Данные покупателя
+        customer = {}
+        if phone := data.get("phone_number"):
+            customer["phone"] = phone
+
+        # Вся доп. информация в metadata
+        metadata = {
+            "price_per_copy": data.get("price"),
+            "copies_count": data.get("copies_count"),
+            "image_size": data.get("image_size"),
+            "pickup": data.get("pickup"),
+            "geolocation": data.get("geolocation"),
+            "file_info": data.get("file_info")
+        }
+
+        # Базовое тело запроса
+        json_body = {
+            "amount": {"value": str(amount), "currency": "RUB"},
+            "capture": True,
+            "description": "Печать фото и документов",
+            "metadata": metadata,
+            "merchant_customer_id": user_id,
+        }
+
+        if payment_method_id:
+            json_body["payment_method_id"] = payment_method_id
+        else:
+            json_body.update({
+                "save_payment_method": True,
+                "test": True,
+                "confirmation": {
+                    "type": "redirect",
+                    "return_url": f"https://t.me/{(await bot.get_me()).username}"
+                },
+                "receipt": {
+                    "items": items,
+                    "customer": customer
+                }
+            })
+
+        print(f"[DEBUG] Запрос в YooKassa: {json_body}")
+
+        # Отправка запроса
+        async with aiohttp.ClientSession('https://api.yookassa.ru') as s:
             r = await s.post(
                 auth=self._auth,
                 url="/v3/payments",
@@ -73,19 +94,18 @@ class YookassaPayment:
                     "accept": "application/json",
                     "Idempotence-Key": str(uuid.uuid4())
                 },
-                json=json
+                json=json_body
             )
 
-            print(f"[DEBUG] Ответ от ЮKassa: {await r.text()}")
+            response_text = await r.text()
+            print(f"[DEBUG] Ответ от YooKassa: {response_text}")
             data = await r.json()
 
-        # Логирование ошибки, если запрос неуспешен
         if r.status != 200:
-            logger.error("Ошибка при создании счёта в ЮKassa: %s", data)
+            logger.error("Ошибка при создании платежа в YooKassa: %s", data)
             return {}
 
-        # Успешное создание счёта
-        logger.info("Счёт успешно создан в ЮKassa: %s", data)
+        logger.info("Платёж успешно создан: %s", data)
         return data
 
     async def status(self, bill_id: str) -> tuple[Optional[BillStatus], dict]:
