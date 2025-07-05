@@ -2,6 +2,7 @@ import asyncio
 
 from bot.core.bot import bot
 from bot.core.logger import payment_manager_logger as logger
+
 from .encryption import Encryption
 from bot.integrations.yookassa.yookassa_payment import YookassaPayment
 

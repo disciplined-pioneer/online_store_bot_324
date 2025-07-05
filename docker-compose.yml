@@ -1,27 +1,48 @@
 version: "3.8"
 
 services:
-
-  postgres:
-    image: postgres
-    restart: always
-    environment:
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_NAME}
-    expose:
-      - '5432'
+  runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - ./:/usr/src/app
+    working_dir: /usr/src/app
+    command: python -m services_runner.run_managers
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    networks:
+      - bot-network
 
   bot:
     build:
       context: .
       dockerfile: Dockerfile
-    restart: always
+    volumes:
+      - ./:/usr/src/app
+    working_dir: /usr/src/app
+    command: python -m bot.bot
     env_file:
       - .env
+    networks:
+      - bot-network
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_NAME}
     volumes:
-      - ./ultralytics:/root/.config/Ultralytics
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - bot-network
 
 volumes:
   postgres-data:
+
+networks:
+  bot-network:
+    driver: bridge

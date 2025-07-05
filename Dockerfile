@@ -1,13 +1,10 @@
-FROM python:3.10
+FROM python:3.12-slim
 
-WORKDIR /bot
-COPY . .
+WORKDIR /usr/src/app
 
-RUN rm -rf /etc/localtime && \
-    ln -s /usr/share/zoneinfo/Europe/Moscow /etc/localtime && \
-    echo "Europe/Moscow" > /etc/timezone
-
-RUN pip install --upgrade pip
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["python", "-m", "bot.bot"]
+COPY . .
+
+CMD ["python"]
