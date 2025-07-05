@@ -2,7 +2,6 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 
-
 LOG_DIR = "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
 
@@ -19,5 +18,6 @@ def create_logger(name: str, log_file: str, level=logging.INFO):
     logger.propagate = False
     return logger
 
-# Логгер для YooKassa
+# Логгеры
 yookassa_logger = create_logger("yookassa", "yookassa.log")
+payment_manager_logger = create_logger("payment_manager", "payment_manager.log")
