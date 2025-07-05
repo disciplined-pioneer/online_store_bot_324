@@ -130,6 +130,7 @@ async def process_copies_count(message: types.Message, state: FSMContext):
         # Данные
         await message.delete()
         data = await state.get_data()
+        price = data.get('price', 1)
         image_size = data.get('image_size')
         last_id_message = data.get('last_id_message')
         text = message.text.strip()
@@ -156,8 +157,9 @@ async def process_copies_count(message: types.Message, state: FSMContext):
         return
 
     # Всё ок, сохраняем в состояние
+    all_price = price * count + 200
     await state.set_state(None)
-    await state.update_data(copies_count=count)
+    await state.update_data(copies_count=count, all_price=all_price)
     await bot.edit_message_text(
         chat_id=message.from_user.id,
         message_id=last_id_message,

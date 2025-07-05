@@ -20,12 +20,12 @@ delivery_pickup_menu = InlineKeyboardMarkup(
     ]
 )
 
-def payment_keyb(price: int = 1):
+def payment_keyb(data):
 
     keyb = InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="Оплатить", url='https://www.google.com/')],
-            [InlineKeyboardButton(text="Назад", callback_data="alternative_back:selection_pick-up_point")],
+            [InlineKeyboardButton(text="Назад", callback_data="alternative_back:edit_geolocation")],
         ]
     )
     return keyb

@@ -37,6 +37,16 @@ class BotConfig(BaseSettings):
         extra = 'ignore'
 
 
+class YooKassa:
+    SHOP_ID: str
+    TOKEN: str
+
+    class Config:
+        env_prefix = 'YOOKASSA_'
+        env_file = '.env'
+        extra = 'ignore'
+
+
 class Settings:
     
     def __init__(self):
@@ -45,6 +55,7 @@ class Settings:
     def load(self):
         self.postgres = PostgresConfig()
         self.bot = BotConfig()
+        self.yookassa = YooKassa()
 
     def reload(self):
         self.load()

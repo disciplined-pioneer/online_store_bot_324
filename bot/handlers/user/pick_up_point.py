@@ -4,9 +4,9 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 
 from ...core.bot import bot
+from ...utils.user.order import *
 from ...keyboards.user.pick_up_point import *
 from ...templates.user.pick_up_point import *
-from ...utils.user.order import *
 from ...integrations.nominatim.geolocation import get_address_nominatim
 
 
@@ -224,7 +224,7 @@ async def process_city(message: types.Message, state: FSMContext):
 
     # Отправляем сообщение
     await state.set_state(None)
-    await state.update_data(city=city)
+    await state.update_data(geolocation={'city': city})
     await bot.edit_message_text(
         chat_id=message.from_user.id,
         message_id=last_id_message,
@@ -240,19 +240,23 @@ async def edit_geolocation(callback: types.CallbackQuery, state: FSMContext):
     # Данные
     data = await state.get_data()
     pickup = data.get('pickup')
-    price = data.get('price', 1)
+    all_price = data.get('all_price', 1)
+
+    print(data)
 
     if pickup == 'ozon':
         await callback.message.edit_text(
-            text='В течение 12 часов после оплаты мы сформируем ваш заказ в приложении Ozon. Вам останется только выбрать удобный пункт выдачи в своём личном кабинете. Спасибо за покупку!',
-            reply_markup=payment_keyb(price)
+            text=generate_order_message(all_price),
+            reply_markup=payment_keyb(data)
         )
 
     elif pickup == 'yandex':
         await callback.message.edit_text(
-            text=f'Отлично, общая сумма заказа составляет {price}₽',
-            reply_markup=payment_keyb(price)
+            text=generate_simple_message(all_price),
+            reply_markup=payment_keyb(data)
         )
+    await state.update_data(all_price=all_price)
+
 
 # Назад к выбору пункта выдачи
 @router.callback_query(F.data.startswith("alternative_back:"))

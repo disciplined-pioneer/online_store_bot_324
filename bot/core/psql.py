@@ -13,3 +13,4 @@ async_db_session = async_sessionmaker(engine)
 
 class Base(DeclarativeBase):
     pass
+
