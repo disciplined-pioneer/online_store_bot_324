@@ -198,8 +198,9 @@ class OrderUsers(Base, ModelAdmin):
     image_size: Mapped[str]
     copies_count: Mapped[str]
     phone_number: Mapped[str]
-    geolocation: Mapped[dict] = mapped_column(JSONB)
-    file_info: Mapped[dict] = mapped_column(JSONB)
+    geolocation: Mapped[str]
+    file_id: Mapped[str]
+    file_type: Mapped[str]
     pickup: Mapped[str]
     dispatch_status: Mapped[str] = mapped_column(
         default='not_sent',

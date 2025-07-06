@@ -1,11 +1,15 @@
 import uuid
+from pathlib import Path
 from typing import Optional
 
 import aiohttp
+from services_runner.utils.encryption import Encryption
 
 from ...core.bot import bot
 from ...settings import settings
 from ...core.logger import yookassa_logger as logger
+
+from ...db.models.models import Bill
 from ...db.models.enum import BillStatus
 
 
@@ -16,6 +20,7 @@ class YookassaPayment:
         login=str(settings.yookassa.SHOP_ID),
         password=settings.yookassa.TOKEN
     )
+    enc = Encryption(Path("secret/key.pem"))
 
     async def create(self, user_id: str, amount: float, data: dict, payment_method_id: str | None = None) -> dict:
         """
@@ -112,6 +117,13 @@ class YookassaPayment:
         if response.status != 200:
             logger.error("Ошибка при создании платежа в YooKassa: %s", data)
             return {}
+        
+        # Заносим в БД
+        encrypted_bill_id = self.enc.encrypt(data.get("id")).decode()
+        await Bill.create(
+            bill_id=encrypted_bill_id,
+            tg_id=user_id,
+        )
 
         logger.info("Платёж успешно создан: %s", data)
         return data

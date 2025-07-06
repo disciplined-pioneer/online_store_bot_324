@@ -7,6 +7,7 @@ __pycache__/
 data/custom_engraving/
 data/paintings_metal/
 media_store.json
+secret/
 
 # C extensions
 *.so
