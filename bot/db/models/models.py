@@ -1,15 +1,16 @@
+import pandas as pd
 from datetime import datetime, timedelta
 from typing import TypeVar, Generic, Sequence
 
-from sqlalchemy import select
+from sqlalchemy import Boolean
 from sqlalchemy.exc import NoResultFound
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, selectinload, load_only
 from sqlalchemy.sql import select, update as sqlalchemy_update
 
 from ...db.models.mapped_columns import *
 from .enum import BillStatus
 from ...core.psql import async_db_session, Base
-from sqlalchemy.dialects.postgresql import JSONB
 
 
 T = TypeVar("T")
@@ -167,24 +168,38 @@ class Users(Base, ModelAdmin):
     name: Mapped[str | None]
     role: Mapped[str] = mapped_column(
         default='user',
-        comment='Роль посльзователя'
+        comment='Роль пользователя'
+    )
+    order: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        comment='Были ли заказы'
     )
     date_registration: Mapped[datetime] = mapped_column(default=now_moscow)
 
     @classmethod
-    async def get_expired_subscriptions(cls) -> list[int]:
+    async def get_users_without_orders(cls) -> pd.DataFrame:
         """
-        Возвращает список tg_id всех пользователей, у которых истекла подписка и статус 'active'.
+        Возвращает DataFrame с пользователями у которых order=False и role='user'.
+        Поля: tg_id, name, role, date_registration
         """
         async with async_db_session() as session:
-            result = await session.execute(
-                select(cls.tg_id).where(
-                    cls.end_subscription < datetime.utcnow(),
-                    cls.status == 'active'
-                )
-            )
-            return [row.tg_id for row in result]
-        
+            stmt = select(cls).where(cls.order == False, cls.role == 'user')
+            result = await session.execute(stmt)
+            users = result.scalars().all()
+
+            data = [
+                {
+                    "tg_id": u.tg_id,
+                    "name": u.name,
+                    "role": u.role,
+                    "date_registration": u.date_registration
+                }
+                for u in users
+            ]
+
+            return pd.DataFrame(data)
+
 
 # Хранение всех заявок
 class OrderUsers(Base, ModelAdmin):

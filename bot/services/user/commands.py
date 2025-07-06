@@ -26,7 +26,9 @@ async def save_or_update_user(tg_id, name):
     try:
         info_user = await Users.get(tg_id=tg_id)
         if info_user:
-            await info_user.update(name=name)
+            await info_user.update(
+                name=name
+            )
         else:
             await Users.create(
                 tg_id=tg_id,
@@ -41,7 +43,7 @@ def create_data_folders():
     """Создание папок для хранения файлов"""
 
     base_path = 'bot/data'
-    folders = ['custom_engraving', 'paintings_metal']
+    folders = ['custom_engraving', 'paintings_metal', 'excel']
 
     # Создаем папку data, если нет
     if not os.path.exists(base_path):
