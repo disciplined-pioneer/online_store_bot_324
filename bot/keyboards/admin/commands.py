@@ -10,6 +10,14 @@ start_admin_keyb = InlineKeyboardMarkup(
 
 back_menu_admin = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text="🔙 Меню", callback_data="back_menu:images")]
+        [InlineKeyboardButton(text="🔙 Меню", callback_data="back_menu")]
+    ]
+)
+
+qr_code_keyb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Старый", callback_data='old')],
+        [InlineKeyboardButton(text="Сформировать", callback_data='form')],
+        [InlineKeyboardButton(text="🔙 Меню", callback_data="back_menu")]
     ]
 )

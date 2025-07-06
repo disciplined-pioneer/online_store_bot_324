@@ -201,6 +201,17 @@ class Users(Base, ModelAdmin):
             return pd.DataFrame(data)
 
 
+# Хранение списка реф. ссылок
+class ReferralLinks(Base, ModelAdmin):
+    
+    __tablename__ = 'referral_links'
+
+    id: Mapped[intpk]
+    referral_link: Mapped[str] = mapped_column(unique=True)
+    number_users: Mapped[int] = mapped_column(default=0)
+    date_creation: Mapped[datetime] = mapped_column(default=now_moscow)
+
+
 # Хранение всех заявок
 class OrderUsers(Base, ModelAdmin):
     
