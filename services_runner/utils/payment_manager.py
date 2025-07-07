@@ -20,7 +20,8 @@ from bot.integrations.yookassa.yookassa_payment import YookassaPayment
 from aiogram.exceptions import TelegramBadRequest
 
 
-async def send_or_update_order_message(order: OrderUsers, group_chat_id: int, bot):
+async def send_or_update_order_message(order: OrderUsers, bot, group_chat_id: int=settings.bot.CHANEL_ID):
+
     ZIP_DIR = "bot/data/zip"
     try:
         # Удаляем предыдущее сообщение, если есть
@@ -179,11 +180,11 @@ class PaymentManager():
                             pickup=metadata.get('pickup')
                         )
 
-                    await send_or_update_order_message(order=new_existing_order, group_chat_id=settings.bot.CHANEL_ID, bot=bot)
-
+                    order_id = new_existing_order.id
+                    await send_or_update_order_message(order=new_existing_order, bot=bot)
                     await bot.send_message(
                         chat_id=bill.tg_id,
-                        text='✅ Оплата была получена, спасибо за покупку! В ближайшее время менеджер оформит ваш заказ'
+                        text=f'✅ Оплата была получена для заказа №{order_id:06d}, спасибо за покупку! В ближайшее время менеджер оформит ваш заказ'
                     )
 
             except Exception as e:

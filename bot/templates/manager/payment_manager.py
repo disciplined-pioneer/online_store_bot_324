@@ -20,3 +20,29 @@ def format_order_text(
     )
 
     return text
+
+def order_sent_msg(order_id: int) -> str:
+    return f"✅ Ваш заказ №{order_id:06d} был отправлен!"
+
+def user_notified_msg(user_id: int) -> str:
+    return f"✅ Сообщение было отправлено пользователю {user_id}!"
+
+def ozon_pickup_request_msg(order_id: int) -> str:
+    return (
+        f"Просьба зайти в приложение Ozon и выбрать удобный пункт для получения "
+        f"заказа №{order_id:06d}. Срок доставки будет отражаться в приложении Ozon"
+    )
+
+def message_sent_msg(user_id: int) -> str:
+    return f"✅ Сообщение было отправлено пользователю {user_id}!"
+
+send_address_request_msg = "Отправьте актуальный адрес в группу!"
+
+def address_updated_msg(order_id: int, address: str) -> str:
+    return f'Актуальный адрес в заказе №{order_id:06d} был изменён на: "{address}"'
+
+def address_update_confirm_msg(order_id: int, address: str, user_id: int) -> str:
+    return f'✅ Актуальный адрес в заказе №{order_id:06d} был изменён на: "{address}". Сообщение было отправлено пользователю {user_id}!'
+
+def files_uploading_msg(order_id: int) -> str:
+    return f'📎 Загрузка файлов для заказа №{order_id:06d}...'

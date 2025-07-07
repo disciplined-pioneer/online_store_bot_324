@@ -6,9 +6,11 @@ from aiogram.types import CallbackQuery
 from ...db.models.models import OrderUsers
 
 from ...core.bot import bot
+from ...settings import settings
 from ...utils.manager.payment_manager import *
 from ...templates.manager.payment_manager import *
 from ...keyboards.manager.payment_manager import *
+from services_runner.utils.payment_manager import send_or_update_order_message
 
 
 router = Router()
@@ -20,17 +22,20 @@ async def send_user(callback: types.CallbackQuery, state: FSMContext):
 
     # Данные
     data_list = callback.data.split(":")
-    user_id = data_list[1]
-    order_id = data_list[2]
+    user_id = int(data_list[1])
+    order_id = int(data_list[2])
+
+    # Изменяем статус отправки
+    info_order = await OrderUsers.get(id=order_id)
+    if info_order:
+        await info_order.update(dispatch_status='sent')
 
     await bot.send_message(
         chat_id=user_id,
-        text=f'✅ Ваш заказ №{order_id:06d} был отправлен!'
+        text=order_sent_msg(order_id)
     )
 
-    await callback.message.answer(
-        text=f'✅ Сообщение было отправлено пользователю {user_id}!'
-    )
+    await callback.message.answer(text=user_notified_msg(user_id))
     await callback.message.delete()
 
 
@@ -40,16 +45,16 @@ async def notify_user(callback: types.CallbackQuery, state: FSMContext):
 
     # Данные
     data_list = callback.data.split(":")
-    user_id = data_list[1]
-    order_id = data_list[2]
+    user_id = int(data_list[1])
+    order_id = int(data_list[2])
 
     await bot.send_message(
         chat_id=user_id,
-        text='Просьба зайти в приложение Ozon и выбрать удобный пункт ддя получения заказа. Срок доставки будет отражаться в приложении Ozon'
+        text=ozon_pickup_request_msg(order_id)
     )
 
     await callback.message.answer(
-        text=f'✅ Сообщение было отправлено пользователю {user_id}!',
+        text=message_sent_msg(user_id),
         reply_markup=back_manager_menu(user_id, order_id)
     )
     await callback.message.delete()
@@ -62,13 +67,14 @@ async def address_user(callback: types.CallbackQuery, state: FSMContext):
 
     # Данные
     data_list = callback.data.split(":")
-    user_id = data_list[1]
-    order_id = data_list[2]
+    user_id = int(data_list[1])
+    order_id = int(data_list[2])
 
-    new_msg = await callback.message.edit_text(
-        text=f'Отправьте актуальный адрес в группу!',
+    new_msg = await callback.message.answer(
+        text=send_address_request_msg,
         reply_markup=back_manager_menu(user_id, order_id)
     )
+    await callback.message.delete()
     await state.set_state(OrderManagerStates.address)
     await state.update_data(user_id=user_id, order_id=order_id, last_id_msg=new_msg.message_id)
 
@@ -79,8 +85,9 @@ async def handle_address(message: Message, state: FSMContext):
 
     await message.delete()
     if message.chat.type not in ("group", "supergroup"):
+        await state.clear()
         return
-
+    
     # Данные
     data = await state.get_data()
     user_id = data.get('user_id')
@@ -88,15 +95,20 @@ async def handle_address(message: Message, state: FSMContext):
     last_id_msg = data.get('last_id_msg')
     address = message.text
 
+    # Изменяем статус отправки
+    info_order = await OrderUsers.get(id=order_id)
+    if info_order:
+        await info_order.update(geolocation=address)
+
     await bot.send_message(
         chat_id=user_id,
-        text=f'Актуальный адрес был изменён на: "{address}"'
+        text=address_updated_msg(order_id, address)
     )
 
     await bot.edit_message_text(
         message_id=last_id_msg,
-        chat_id=message.from_user.id,
-        text=f'✅ Сообщение было отправлено пользователю {user_id}!',
+        chat_id=settings.bot.CHANEL_ID,
+        text=address_update_confirm_msg(order_id, address, user_id),
         reply_markup=back_manager_menu(user_id, order_id)
     )
     await state.update_data(user_id=user_id, order_id=order_id)
@@ -106,30 +118,17 @@ async def handle_address(message: Message, state: FSMContext):
 @router.callback_query(F.data.startswith("back_manager:"))
 async def back_manager(callback: types.CallbackQuery, state: FSMContext):
 
+    # Данные
+    await state.set_state(None)
     data_list = callback.data.split(":")
     user_id = int(data_list[1])
     order_id = int(data_list[2])
+    await callback.message.edit_text(files_uploading_msg(order_id))
 
     # Получаем информацию о заказе
-    order = await OrderUsers.get(id=order_id)
-
-    # Форматируем текст заказа
-    text = format_order_text(
-        order_id=order.id,
-        product_name=order.product_name,
-        quantity=order.quantity,
-        total_price=order.total_price,
-        address=order.address,
-        delivery_method=order.delivery_method,
-        image_size=order.image_size,
-        phone_number=order.phone_number,
-    )
-
-    # Обновляем сообщение
-    await callback.message.edit_text(
-        text=text,
-        reply_markup=await manager_panel_keyb(user_id=user_id, order_id=order_id, bot=bot)
-    )
+    new_existing_order = await OrderUsers.get(id=order_id)
+    await send_or_update_order_message(order=new_existing_order, bot=bot)
+    await callback.message.delete()
 
     # Обновляем state
     await state.update_data(user_id=user_id, order_id=order_id)
@@ -139,6 +138,6 @@ async def back_manager(callback: types.CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "contact_unavailable")
 async def contact_unavailable(query: CallbackQuery):
     await query.answer(
-        "Пользователь временно недоступна ⏳",
+        user_unavailable_msg = "Пользователь временно недоступна ⏳",
         show_alert=True
     )

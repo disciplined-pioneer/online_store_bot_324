@@ -1,5 +1,3 @@
-choose_image_size_text = 'Выберите размер изображения'
-
 add_image_instruction = 'Добавьте изображение в формате jpg, jpeg, png'
 
 invalid_image_format_text = (

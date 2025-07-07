@@ -7,7 +7,7 @@ from ...core.bot import bot
 from ...keyboards.user.order import *
 from ...templates.user.order import *
 from ...db.models.models import OrderUsers
-from ...utils.user.order import OrderDetailsStates, ALLOWED_IMAGE_FORMATS, prices_dict
+from ...utils.user.order import OrderDetailsStates, ALLOWED_IMAGE_FORMATS, prices_dict, image_dict
 
 
 router = Router()
@@ -17,38 +17,22 @@ router = Router()
 @router.callback_query(F.data.regexp(r"^order_confirm:(\d+)$"))
 async def confirm_order(callback: CallbackQuery, state: FSMContext):
 
+    # Данные
+    await state.clear()
+    data = await state.get_data()
     index = int(callback.data.split(":")[1])
-
+    image_size = image_dict[str(index)]
+    
     new_msg = await callback.message.answer(
-        text=choose_image_size_text,
-        reply_markup=size_selection_menu
+        text=add_image_instruction,
+        reply_markup=image_menu
     )
     await callback.message.delete()
-    
-    await state.clear()
-    await state.update_data(
-        price=prices_dict[str(index)],
-        number_order=index,
-        last_id_message=new_msg.message_id
-    )
-
-
-# Обработка выбранного размера изображения
-@router.callback_query(F.data.startswith("size:"))
-async def image_sizef(callback: types.CallbackQuery, state: FSMContext):
-
-    # Данные
-    data = await state.get_data()
-    number_order = data.get('number_order', 1)
-    image_size = callback.data.split(':')[1]
-
-    new_msg = await callback.message.edit_text(
-        text=add_image_instruction,
-        reply_markup=previous_stepn_keyboard(f'order_confirm:{number_order}')
-    )
 
     await state.update_data(
         image_size=image_size,
+        price=prices_dict[str(index)],
+        number_order=index,
         last_id_message=new_msg.message_id
     )
     await state.set_state(OrderDetailsStates.image)
@@ -150,7 +134,7 @@ async def process_copies_count(message: types.Message, state: FSMContext):
         dispatch_status='not_sent'
     )
     if not info_order:
-        all_price += 2000
+        all_price += 200
 
     # Всё ок, сохраняем в состояние
     await state.set_state(None)

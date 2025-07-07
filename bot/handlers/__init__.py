@@ -17,8 +17,8 @@ routers = [
     order,
     pick_up_point,
     examples,
-    auxiliary,
     payment_manager,
     my_orders,
-    admin
+    admin,
+    auxiliary,
 ]
