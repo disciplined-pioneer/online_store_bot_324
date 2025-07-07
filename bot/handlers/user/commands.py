@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 
 from ...core.bot import bot
 from ...db.models.models import Users
+from ...utils.user.commands import process_start_payload
 from ...services.user.commands import save_or_update_user
 from ...templates.user.commands import hello_user_msg
 from ...keyboards.user.commands import start_user_keyb
@@ -34,6 +35,9 @@ async def cmd_start(message: Message, state: FSMContext):
     tg_id = tg_id=message.from_user.id
     name = message.from_user.full_name
     await save_or_update_user(tg_id=tg_id, name=name)
+
+    # Обработка реф. ссылки
+    await process_start_payload(tg_id=tg_id, message=message)
 
     new_msg = await message.answer(
         text=hello_user_msg,
