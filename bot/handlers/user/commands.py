@@ -39,13 +39,7 @@ async def cmd_start(message: Message, state: FSMContext):
     # Обработка реф. ссылки
     await process_start_payload(tg_id=tg_id, message=message)
 
-    new_msg = await message.answer(
-        text=hello_user_msg,
-        reply_markup=await start_user_keyb(bot)
-    )
-
-    """# Информация о пользователе
-    tg_id = message.from_user.id
+    # Информация о пользователе
     info_users = await Users.get(tg_id=tg_id)
     role = info_users.role
 
@@ -59,6 +53,6 @@ async def cmd_start(message: Message, state: FSMContext):
         new_msg = await message.answer(
             text=hello_user_msg,
             reply_markup=await start_user_keyb(bot)
-        )"""
+        )
     
     await state.update_data(last_id_message=new_msg.message_id)

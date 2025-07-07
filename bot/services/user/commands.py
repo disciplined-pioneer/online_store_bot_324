@@ -43,7 +43,7 @@ def create_data_folders():
     """Создание папок для хранения файлов"""
 
     base_path = 'bot/data'
-    folders = ['custom_engraving', 'paintings_metal', 'excel', 'zip']
+    folders = ['custom_engraving', 'paintings_metal', 'excel', 'zip', 'qrcodes']
 
     # Создаем папку data, если нет
     if not os.path.exists(base_path):
