@@ -30,7 +30,7 @@ def payment_keyb(payment_url: str='https://www.google.com/'):
     )
     return keyb
 
-async def create_edit_geolocation_keyboard(bot):
+async def create_edit_geolocation_keyboard(bot) -> InlineKeyboardMarkup:
     
     base_buttons = [
         [InlineKeyboardButton(text="Город", callback_data="edit_geolocation:city")],

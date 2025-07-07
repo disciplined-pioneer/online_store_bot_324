@@ -8,6 +8,7 @@ data/custom_engraving/
 data/paintings_metal/
 media_store.json
 secret/
+logs/
 
 # C extensions
 *.so

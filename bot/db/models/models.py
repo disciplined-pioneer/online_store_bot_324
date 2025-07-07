@@ -219,20 +219,20 @@ class OrderUsers(Base, ModelAdmin):
 
     id: Mapped[intpk]
     tg_id: Mapped[int] = mapped_column(BigInteger)
-    name: Mapped[str]
-    price: Mapped[float] = mapped_column(Float)
-    image_size: Mapped[str]
-    copies_count: Mapped[str]
-    phone_number: Mapped[str]
-    geolocation: Mapped[str]
-    file_id: Mapped[str]
-    file_type: Mapped[str]
-    pickup: Mapped[str]
-    dispatch_status: Mapped[str] = mapped_column(
+    name: Mapped[str | None]
+    price: Mapped[float | None] = mapped_column(Float)
+    image_size: Mapped[str | None]
+    copies_count: Mapped[str | None]
+    phone_number: Mapped[str | None]
+    geolocation: Mapped[str | None]
+    file_id: Mapped[str | None]
+    file_type: Mapped[str | None]
+    pickup: Mapped[str | None]
+    dispatch_status: Mapped[str | None] = mapped_column(
         default='not_sent',
         comment='Статус отправки менеджером: not_sent/sent'
     )
-    last_id_message_group: Mapped[int]
+    last_id_message_group: Mapped[int | None]
     last_update: Mapped[datetime] = mapped_column(default=now_moscow)
 
 

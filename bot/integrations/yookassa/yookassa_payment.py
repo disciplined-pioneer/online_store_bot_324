@@ -33,7 +33,7 @@ class YookassaPayment:
         """
 
         # Описание позиции
-        product_description = f"Печать: размер {data.get('image_size')}, копий: {data.get('copies_count')}"
+        product_description = f"Картины на металле"
 
         # Товары в чеке
         items = [{
@@ -66,7 +66,8 @@ class YookassaPayment:
             "geolocation_street": geo.get("street", ""),
             "geolocation_house": geo.get("house", ""),
             "file_id": file_info.get("file_id", ""),
-            "file_type": file_info.get("type", "")
+            "file_type": file_info.get("type", ""),
+            'phone': data.get("phone_number")
         }
 
         # Сборка основного тела запроса
@@ -95,7 +96,7 @@ class YookassaPayment:
         else:
             json_body["payment_method_id"] = payment_method_id
 
-        print(f"[DEBUG] Запрос в YooKassa: {json_body}")
+        #print(f"[DEBUG] Запрос в YooKassa: {json_body}")
 
         # Отправка запроса
         async with aiohttp.ClientSession('https://api.yookassa.ru') as session:
@@ -110,7 +111,7 @@ class YookassaPayment:
             )
 
             response_text = await response.text()
-            print(f"[DEBUG] Ответ от YooKassa: {response_text}")
+            #print(f"[DEBUG] Ответ от YooKassa: {response_text}")
             data = await response.json()
 
         # Проверка статуса запроса
@@ -125,7 +126,7 @@ class YookassaPayment:
             tg_id=user_id,
         )
 
-        logger.info("Платёж успешно создан: %s", data)
+        logger.info("Платёж успешно создан")
         return data
 
     async def status(self, bill_id: str) -> tuple[Optional[BillStatus], dict]:
@@ -144,7 +145,7 @@ class YookassaPayment:
                 },
             )
 
-            print(f"[DEBUG] Ответ на запрос статуса: {await response.text()}")
+            #print(f"[DEBUG] Ответ на запрос статуса: {await response.text()}")
             data = await response.json()
 
         # Лог ошибки, если статус не 200

@@ -35,12 +35,12 @@ async def cmd_start(message: Message, state: FSMContext):
     name = message.from_user.full_name
     await save_or_update_user(tg_id=tg_id, name=name)
 
-    """new_msg = await message.answer(
+    new_msg = await message.answer(
         text=hello_user_msg,
         reply_markup=await start_user_keyb(bot)
-    )"""
+    )
 
-    # Информация о пользователе
+    """# Информация о пользователе
     tg_id = message.from_user.id
     info_users = await Users.get(tg_id=tg_id)
     role = info_users.role
@@ -55,6 +55,6 @@ async def cmd_start(message: Message, state: FSMContext):
         new_msg = await message.answer(
             text=hello_user_msg,
             reply_markup=await start_user_keyb(bot)
-        )
+        )"""
     
     await state.update_data(last_id_message=new_msg.message_id)

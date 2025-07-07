@@ -26,7 +26,7 @@ async def main():
 
     await add_admins() # Добавление админов
     create_data_folders()
-        
+
     await bot.set_my_commands(
         commands=settings.bot.COMMANDS,
         scope=BotCommandScopeDefault()

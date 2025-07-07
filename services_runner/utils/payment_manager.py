@@ -65,7 +65,11 @@ async def send_or_update_order_message(order: OrderUsers, group_chat_id: int, bo
         # 5. Обновляем id последнего сообщения
         await order.update(last_id_message_group=sent_message.message_id)
 
+        print(sent_message.message_id)
+        return sent_message.message_id
+
     except Exception as e:
+        print(f'ошибка: {e}')
         logger.exception(f"Ошибка при отправке сообщения заказа #{order.id}: {e}")
 
 
@@ -87,6 +91,8 @@ class PaymentManager():
             await asyncio.sleep(self.timeout)
 
     async def task(self):
+
+        logger.info('===== Запуск задачи для проверки статуса платежей =====')
         bills = await Bill.filter(status=BillStatus.PENDING)
 
         for bill in bills:
@@ -107,7 +113,7 @@ class PaymentManager():
 
                     # Распаковка данных
                     metadata = data.get("metadata", {})
-                    phone = data.get("receipt", {}).get("customer", {}).get("phone") or metadata.get("phone_number")
+                    phone =metadata.get("phone")
 
                     address = ", ".join(filter(None, [
                         metadata.get("geolocation_city", ""),
@@ -118,7 +124,7 @@ class PaymentManager():
                     amount = float(data.get("amount", {}).get("value", 0.0))
 
                     # Проверка существующего заказа
-                    existing_order = await OrderUsers.filter(tg_id=bill.tg_id, dispatch_status='not_sent')
+                    existing_order = await OrderUsers.get(tg_id=bill.tg_id, dispatch_status='not_sent')
 
                     if existing_order:
                         
@@ -139,7 +145,7 @@ class PaymentManager():
                             pickup=merge_unique(existing_order.pickup, metadata.get("pickup"))
                         )
                     else:
-                        await OrderUsers.create(
+                        existing_order = await OrderUsers.create(
                             tg_id=bill.tg_id,
                             name='Картины на металле',
                             price=amount,

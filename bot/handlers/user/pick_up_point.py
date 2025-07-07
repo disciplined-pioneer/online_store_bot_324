@@ -289,3 +289,11 @@ async def alternative_back(callback: types.CallbackQuery, state: FSMContext):
             text=build_user_address_text(user_address),
             reply_markup=await create_edit_geolocation_keyboard(bot)
         )
+
+    """elif type_choice == 'edit_geolocation':
+        await bot.edit_message_text(
+                chat_id=message.from_user.id,
+                message_id=last_id_message,
+                text=user_city_text(city),
+                reply_markup=await final_menu_keyb(bot)
+            )"""
