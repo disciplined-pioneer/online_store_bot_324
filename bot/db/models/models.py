@@ -4,7 +4,7 @@ from typing import TypeVar, Generic, Sequence
 
 from sqlalchemy import Boolean
 from sqlalchemy.exc import NoResultFound
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select as sqlalchemy_select
 from sqlalchemy.orm import Mapped, selectinload, load_only
 from sqlalchemy.sql import select, update as sqlalchemy_update
 
@@ -47,15 +47,28 @@ class ModelAdmin(Generic[T]):
             session.add(cls(**kwargs))
             await session.commit()
 
-    async def update(self, **kwargs) -> None:
+    async def update(self, **kwargs) -> T:
         """
-        # Обновляет текущий объект.
-        :param kwargs: Поля и значения, которые надо поменять.
+        Обновляет текущий объект в базе и возвращает его заново (с актуальными данными).
+
+        :param kwargs: Поля и значения, которые надо обновить.
+        :return: Обновлённый объект
         """
         async with async_db_session() as session:
-            stmt = sqlalchemy_update(self.__class__).where(self.__class__.id == self.id).values(**kwargs)
+            stmt = sqlalchemy_update(self.__class__).where(
+                self.__class__.id == self.id
+            ).values(**kwargs)
+
             await session.execute(stmt)
             await session.commit()
+
+            # Заново получаем объект из базы
+            result = await session.execute(
+                sqlalchemy_select(self.__class__).where(self.__class__.id == self.id)
+            )
+            updated_obj = result.scalar_one_or_none()
+
+            return updated_obj
 
     async def delete(self) -> None:
         """
@@ -87,6 +100,29 @@ class ModelAdmin(Generic[T]):
                 (result,) = results.one()
                 return result
         except NoResultFound:
+            return None
+
+    @classmethod
+    async def get_first(cls, select_in_load: str | None = None, **kwargs) -> T | None:
+        """
+        Возвращает первую запись, удовлетворяющую условиям. 
+        Безопасный аналог get(): не выбрасывает исключений при множественных результатах или их отсутствии.
+
+        :param select_in_load: Имя связанной модели для подгрузки (если нужно).
+        :param kwargs: Параметры фильтрации по полям модели.
+        :return: Первая подходящая запись или None.
+        """
+        params = [getattr(cls, key) == val for key, val in kwargs.items()]
+        query = select(cls).where(*params)
+
+        if select_in_load:
+            query = query.options(selectinload(getattr(cls, select_in_load)))
+
+        async with async_db_session() as session:
+            results = await session.execute(query)
+            row = results.first()
+            if row:
+                return row[0]
             return None
 
     @classmethod

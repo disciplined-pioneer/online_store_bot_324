@@ -9,6 +9,7 @@ data/paintings_metal/
 media_store.json
 secret/
 logs/
+zip/
 
 # C extensions
 *.so
