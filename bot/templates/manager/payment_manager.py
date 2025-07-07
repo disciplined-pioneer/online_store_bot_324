@@ -9,7 +9,7 @@ def format_order_text(
     phone_number: str,
 ) -> str:
     text = (
-        f"<b>Номер заказа:</b> {order_id}\n"
+        f"<b>Номер заказа:</b> {order_id:06d}\n"
         f"<b>Название товара:</b> {product_name}\n"
         f"<b>Количество:</b> {quantity}\n"
         f"<b>Стоимость:</b> {total_price} ₽\n"

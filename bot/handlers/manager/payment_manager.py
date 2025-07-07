@@ -25,7 +25,7 @@ async def send_user(callback: types.CallbackQuery, state: FSMContext):
 
     await bot.send_message(
         chat_id=user_id,
-        text=f'✅ Ваш заказ №{order_id} был отправлен!'
+        text=f'✅ Ваш заказ №{order_id:06d} был отправлен!'
     )
 
     await callback.message.answer(

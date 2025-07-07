@@ -247,18 +247,18 @@ async def edit_geolocation(callback: types.CallbackQuery, state: FSMContext):
     if pickup == 'ozon':
         await callback.message.edit_text(
             text=generate_order_message(all_price),
-            reply_markup=await start_payment_handler(user_id=tg_id, amount=all_price, order_data=data)
+            reply_markup=await start_payment_handler(user_id=tg_id, amount=all_price, order_data=data, parametr='edit_city')
         )
 
     elif pickup == 'yandex':
         await callback.message.edit_text(
             text=generate_simple_message(all_price),
-            reply_markup=await start_payment_handler(user_id=tg_id, amount=all_price, order_data=data)
+            reply_markup=await start_payment_handler(user_id=tg_id, amount=all_price, order_data=data, parametr='edit_geolocation')
         )
     await state.update_data(all_price=all_price)
 
 
-# Назад к выбору пункта выдачи
+# Кнопка "Назад"
 @router.callback_query(F.data.startswith("alternative_back:"))
 async def alternative_back(callback: types.CallbackQuery, state: FSMContext):
 
@@ -290,10 +290,10 @@ async def alternative_back(callback: types.CallbackQuery, state: FSMContext):
             reply_markup=await create_edit_geolocation_keyboard(bot)
         )
 
-    """elif type_choice == 'edit_geolocation':
-        await bot.edit_message_text(
-                chat_id=message.from_user.id,
-                message_id=last_id_message,
-                text=user_city_text(city),
-                reply_markup=await final_menu_keyb(bot)
-            )"""
+    elif type_choice == 'edit_city':
+       geolocation = data.get('geolocation')
+       city = geolocation.get("city") or "Неизвестно"
+       await callback.message.edit_text(
+            text=user_city_text(city),
+            reply_markup=await final_menu_keyb(bot)
+        )

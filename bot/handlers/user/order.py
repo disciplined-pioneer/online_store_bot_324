@@ -54,41 +54,6 @@ async def image_sizef(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(OrderDetailsStates.image)
 
 
-# Обработка изображения от пользователя
-@router.message(OrderDetailsStates.image, F.photo)
-async def handle_photo(message: Message, state: FSMContext):
-
-    # Данные
-    await message.delete()
-    data = await state.get_data()
-    image_size = data.get('image_size')
-    number_order = data.get('number_order', 1)
-    last_id_message = data.get('last_id_message')
-    photo = message.photo[-1]
-    file_info = await message.bot.get_file(photo.file_id)
-
-    try:
-        if file_info.file_path.endswith((".jpg", ".jpeg", ".png")):
-
-            await bot.edit_message_text(
-                chat_id=message.from_user.id,
-                message_id=last_id_message,
-                text=enter_copies_count_text,
-                reply_markup=previous_stepn_keyboard(f'size:{image_size}')
-            )
-            await state.set_state(OrderDetailsStates.number_copies) 
-            await state.update_data(file_info={'file_id': photo.file_id, 'type': 'photo'})
-        else:
-            await bot.edit_message_text(
-                chat_id=message.from_user.id,
-                message_id=last_id_message,
-                text=invalid_image_format_text,
-                reply_markup=previous_stepn_keyboard(f'order_confirm:{number_order}')
-            )
-    except:
-        return
-
-
 # Обработка "файлов" (если пользователь прикрепил документ)
 @router.message(OrderDetailsStates.image, F.document)
 async def handle_document_image(message: Message, state: FSMContext):
@@ -111,7 +76,7 @@ async def handle_document_image(message: Message, state: FSMContext):
                 reply_markup=previous_stepn_keyboard(f'size:{image_size}')
             )
             await state.set_state(OrderDetailsStates.number_copies)
-            await state.update_data(file_info={'file_id': message.document.file_id, 'type': 'photo'})
+            await state.update_data(file_info={'file_id': message.document.file_id, 'type': 'document'})
         else:
             await bot.edit_message_text(
                 chat_id=message.from_user.id,
@@ -122,6 +87,27 @@ async def handle_document_image(message: Message, state: FSMContext):
     except:
         return
     
+
+# Обработка изображения от пользователя
+@router.message(OrderDetailsStates.image, F.photo)
+async def handle_photo(message: Message, state: FSMContext):
+
+    # Данные
+    await message.delete()
+    data = await state.get_data()
+    number_order = data.get('number_order', 1)
+    last_id_message = data.get('last_id_message')
+
+    try:
+        await bot.edit_message_text(
+            chat_id=message.from_user.id,
+            message_id=last_id_message,
+            text=invalid_image_text,
+            reply_markup=previous_stepn_keyboard(f'order_confirm:{number_order}')
+        )
+    except:
+        return
+
 
 # Обрабатываем количество копий
 @router.message(OrderDetailsStates.number_copies)
