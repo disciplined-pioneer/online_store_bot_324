@@ -15,3 +15,5 @@ def format_order_text(order: OrderUsers) -> str:
         f"⏰ Последнее обновление: {order.last_update.strftime('%d.%m.%Y %H:%M')}"
     )
     return text
+
+no_orders_user = "У вас пока нет заказов"

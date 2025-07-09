@@ -2,7 +2,6 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 
-from ...core.bot import bot
 from ...db.models.models import OrderUsers
 from ...templates.user.my_orders import *
 from ...keyboards.user.my_orders import *
@@ -18,7 +17,10 @@ async def my_orders(callback: CallbackQuery, state: FSMContext):
     tg_id = callback.from_user.id
     orders = await OrderUsers.filter(tg_id=tg_id)
     if not orders:
-        await callback.message.edit_text("У вас пока нет заказов.")
+        await callback.message.edit_text(
+            text=no_orders_user,
+            reply_markup=back_menu
+        )
         await callback.answer()
         return
 

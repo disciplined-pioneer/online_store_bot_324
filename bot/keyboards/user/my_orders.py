@@ -45,3 +45,9 @@ def create_orders_keyboard(current_index: int, total: int) -> InlineKeyboardMark
     keyboard.append(row_4)
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+back_menu = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="🔙 Меню", callback_data="back_menu")]
+    ]
+)
