@@ -40,10 +40,12 @@ async def create_edit_geolocation_keyboard(bot) -> InlineKeyboardMarkup:
     ]
 
     try:
-        await bot.send_chat_action(settings.bot.SUPPORT_ID, action="typing")
+        # Проверяем, существует ли пользователь
+        await bot.get_chat(settings.bot.SUPPORT_ID)
         base_buttons.append([InlineKeyboardButton(text="Поддержка", url=f"tg://user?id={settings.bot.SUPPORT_ID}")])
+    
     except TelegramBadRequest:
-        base_buttons.append([InlineKeyboardButton(text="Поддержка", callback_data='support_unavailable')])
+        base_buttons.append([InlineKeyboardButton(text="Поддержка (недоступен)", callback_data='support_unavailable')])
 
     base_buttons.append([InlineKeyboardButton(text="🔙 Меню", callback_data='back_menu')])
 
@@ -72,10 +74,11 @@ async def final_menu_keyb(bot):
     ]
 
     try:
-        await bot.send_chat_action(settings.bot.SUPPORT_ID, action="typing")
+        await bot.get_chat(settings.bot.SUPPORT_ID)
         base_buttons.append([InlineKeyboardButton(text="Поддержка", url=f"tg://user?id={settings.bot.SUPPORT_ID}")])
+    
     except TelegramBadRequest:
-        base_buttons.append([InlineKeyboardButton(text="Поддержка", callback_data='support_unavailable')])
+        base_buttons.append([InlineKeyboardButton(text="Поддержка  (недоступен)", callback_data='support_unavailable')])
 
     base_buttons.append([InlineKeyboardButton(text="Назад", callback_data='alternative_back:choice_city')])
     base_buttons.append([InlineKeyboardButton(text="🔙 Меню", callback_data='back_menu')])

@@ -83,7 +83,6 @@ class YookassaPayment:
         if not payment_method_id:
             json_body.update({
                 "save_payment_method": True,
-                "test": True,
                 "confirmation": {
                     "type": "redirect",
                     "return_url": f"https://t.me/{(await bot.get_me()).username}"

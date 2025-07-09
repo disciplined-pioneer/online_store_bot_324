@@ -118,7 +118,6 @@ async def clients(callback: CallbackQuery, state: FSMContext):
             text=no_users_with_orders_msg,
             reply_markup=back_menu_admin
         )
-        await callback.message.delete()
         return
 
     data = []

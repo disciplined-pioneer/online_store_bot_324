@@ -24,10 +24,12 @@ async def price_engraving_menu(bot):
     base_buttons = []
 
     try:
-        await bot.send_chat_action(settings.bot.SUPPORT_ID, action="typing")
+        # Проверяем, существует ли пользователь
+        await bot.get_chat(settings.bot.SUPPORT_ID)
         base_buttons.append([InlineKeyboardButton(text="Чат с менеджером", url=f"tg://user?id={settings.bot.MANAGER_ID}")])
+    
     except TelegramBadRequest:
-        base_buttons.append([InlineKeyboardButton(text="Чат с менеджером", callback_data='manager_unavailable')])
+        base_buttons.append([InlineKeyboardButton(text="Чат с менеджером (недоступен)", callback_data='manager_unavailable')])
 
     base_buttons.append([InlineKeyboardButton(text="Назад", callback_data='order:engraving')])
     base_buttons.append([InlineKeyboardButton(text="🔙 Меню", callback_data='back_menu')])

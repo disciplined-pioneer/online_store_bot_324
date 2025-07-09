@@ -19,7 +19,6 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext):
 
     # Данные
     await state.clear()
-    data = await state.get_data()
     index = int(callback.data.split(":")[1])
     image_size = image_dict[str(index)]
     
@@ -45,7 +44,6 @@ async def handle_document_image(message: Message, state: FSMContext):
     # Данные
     await message.delete()
     data = await state.get_data()
-    image_size = data.get('image_size')
     number_order = data.get('number_order', 1)
     last_id_message = data.get('last_id_message')
 
@@ -57,7 +55,7 @@ async def handle_document_image(message: Message, state: FSMContext):
                 chat_id=message.from_user.id,
                 message_id=last_id_message,
                 text=enter_copies_count_text,
-                reply_markup=previous_stepn_keyboard(f'size:{image_size}')
+                reply_markup=previous_stepn_keyboard(f'back_step_user:image_back')
             )
             await state.set_state(OrderDetailsStates.number_copies)
             await state.update_data(file_info={'file_id': message.document.file_id, 'type': 'document'})
@@ -147,15 +145,23 @@ async def process_copies_count(message: types.Message, state: FSMContext):
     )
 
 
-# Обработка кнопки "Назад" для количества копий
-@router.callback_query(F.data == "return_copies")
-async def previous_step(callback: types.CallbackQuery, state: FSMContext):
+# Обработка кнопки "Назад" для пользователя
+@router.callback_query(F.data.startswith("back_step_user:"))
+async def back_step_user(callback: types.CallbackQuery, state: FSMContext):
 
-    data = await state.get_data()
-    image_size = data.get('image_size')
+    parametr = callback.data.split(':')[1]
+    
+    if parametr == 'image_back':
+        new_msg = await callback.message.edit_text(
+            text=add_image_instruction,
+            reply_markup=image_menu
+        )
+        await state.set_state(OrderDetailsStates.image)
 
-    await callback.message.edit_text(
-        text=enter_copies_count_text,
-        reply_markup=previous_stepn_keyboard(f'size:{image_size}')
-    )
-    await state.set_state(OrderDetailsStates.number_copies)
+    elif parametr == 'return_copies':
+        new_msg = await callback.message.edit_text(
+            text=enter_copies_count_text,
+            reply_markup=previous_stepn_keyboard(f'back_step_user:image_back')
+        )
+        await state.set_state(OrderDetailsStates.number_copies)
+    await state.update_data(last_id_message=new_msg.message_id)

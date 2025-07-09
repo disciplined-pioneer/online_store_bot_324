@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -47,13 +48,18 @@ class MediaWrapper:
     async def send(self, msg: Message, reply_markup=None, caption: Optional[str] = None) -> Message:
         bot: Bot = msg.bot
 
+        # Попытка отправить по file_id
         if self.file_id:
-            if self.kind == "photo":
-                return await msg.answer_photo(self.file_id, caption=caption, reply_markup=reply_markup)
-            elif self.kind == "animation":
-                return await msg.answer_animation(self.file_id, caption=caption, reply_markup=reply_markup)
-            elif self.kind == "video":
-                return await msg.answer_video(self.file_id, caption=caption, reply_markup=reply_markup)
+            try:
+                if self.kind == "photo":
+                    return await msg.answer_photo(self.file_id, caption=caption, reply_markup=reply_markup)
+                elif self.kind == "animation":
+                    return await msg.answer_animation(self.file_id, caption=caption, reply_markup=reply_markup)
+                elif self.kind == "video":
+                    return await msg.answer_video(self.file_id, caption=caption, reply_markup=reply_markup)
+            except Exception as e:
+                logging.warning(f"[ERROR] Failed to send by file_id: {self.file_id} — {e}")
+                self.file_id = None
 
         if self.path:
             input_file = FSInputFile(self.path)
@@ -127,6 +133,7 @@ def get_media_by_index(folder: str, index: int) -> Tuple[Optional[MediaWrapper],
         return None, total
 
     if cached:
-        return MediaWrapper(kind=kind, file_id=cached["file_id"]), total
+        return MediaWrapper(kind=kind, file_id=cached.get("file_id"), path=full_path), total
     else:
         return MediaWrapper(kind=kind, path=full_path), total
+

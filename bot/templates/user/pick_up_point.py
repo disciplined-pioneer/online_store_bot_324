@@ -46,9 +46,9 @@ def user_city_text(city: str) -> str:
     return f'Ваш город проживания: "{city}"'
 
 edit_address_prompts_text = {
-    'city': 'Укажите новый город',
-    'street': 'Укажите новую улицу',
-    'house': 'Укажите новый дом'
+    'city': 'Укажите новое значение города',
+    'street': 'Укажите новое значение улицы',
+    'house': 'Укажите новое значение дома'
 }
 
 def get_value_changed_text(new_value: str) -> str:

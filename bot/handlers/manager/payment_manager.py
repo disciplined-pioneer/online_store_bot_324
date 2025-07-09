@@ -134,7 +134,7 @@ async def back_manager(callback: types.CallbackQuery, state: FSMContext):
     await state.update_data(user_id=user_id, order_id=order_id)
 
 
-# Когда поддержка недоступна
+# Когда пользователь недоступен
 @router.callback_query(F.data == "contact_unavailable")
 async def contact_unavailable(query: CallbackQuery):
     await query.answer(

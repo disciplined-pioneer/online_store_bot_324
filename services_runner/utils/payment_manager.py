@@ -92,6 +92,7 @@ async def send_or_update_order_message(order: OrderUsers, bot, group_chat_id: in
     except Exception as e:
         logger.exception(f"Ошибка при отправке сообщения заказа #{order.id}: {e}")
         print(f'ошибка: {e}')
+        
     except Exception as e:
         logger.exception(f"Ошибка при отправке сообщения заказа #{order.id}: {e}")
         print(f'ошибка: {e}')
@@ -186,6 +187,7 @@ class PaymentManager():
                         chat_id=bill.tg_id,
                         text=f'✅ Оплата была получена для заказа №{order_id:06d}, спасибо за покупку! В ближайшее время менеджер оформит ваш заказ'
                     )
+                    logger.info(f'Оплата пользователя {bill.tg_id} была подтверждена для заказа №{order_id:06d}')
 
             except Exception as e:
                 logger.exception(f"Ошибка при проверке статуса счета {bill.bill_id}: {e}")
