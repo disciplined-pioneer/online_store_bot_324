@@ -26,7 +26,7 @@ async def users(callback: CallbackQuery, state: FSMContext):
     df = await Users.get_users_without_orders()
 
     # Создаём папку, если её нет
-    output_dir = Path("data/excel")
+    output_dir = Path("bot/data/excel")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Уникальное имя файла — по tg_id пользователя
