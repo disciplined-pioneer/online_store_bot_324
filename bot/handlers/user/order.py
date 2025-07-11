@@ -1,3 +1,4 @@
+import logging
 from aiogram import Router, F, types
 from aiogram.types import Message
 from aiogram.types import CallbackQuery
@@ -6,6 +7,7 @@ from aiogram.fsm.context import FSMContext
 from ...core.bot import bot
 from ...keyboards.user.order import *
 from ...templates.user.order import *
+from ...utils.user.examples import get_media_by_index
 from ...db.models.models import OrderUsers
 from ...utils.user.order import OrderDetailsStates, ALLOWED_IMAGE_FORMATS, prices_dict, image_dict
 
@@ -20,17 +22,28 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext):
     # Данные
     await state.clear()
     index = int(callback.data.split(":")[1])
-    image_size = image_dict[str(index)]
-    
-    new_msg = await callback.message.answer(
-        text=add_image_instruction,
-        reply_markup=image_menu
-    )
+    image_size = image_dict.get(str(index))
+    media, _ = get_media_by_index("user_image_example", 1)
+    text = add_image_instruction
+    keyboard = image_menu
     await callback.message.delete()
+
+    if media:
+        try:
+            new_msg = await media.send(
+                msg=callback.message,
+                caption=text,
+                reply_markup=keyboard
+            )
+        except Exception as e:
+            logging.error(f"Ошибка при отправке медиа: {e}")
+            new_msg = await callback.message.answer(text=text, reply_markup=keyboard)
+    else:
+        new_msg = await callback.message.answer(text=text, reply_markup=image_exz_menu)
 
     await state.update_data(
         image_size=image_size,
-        price=prices_dict[str(index)],
+        price=prices_dict.get(str(index)),
         number_order=index,
         last_id_message=new_msg.message_id
     )
@@ -50,22 +63,23 @@ async def handle_document_image(message: Message, state: FSMContext):
     mime_type = message.document.mime_type
     try:
         if mime_type in ALLOWED_IMAGE_FORMATS:
-            
-            await bot.edit_message_text(
-                chat_id=message.from_user.id,
-                message_id=last_id_message,
+            await message.answer(
                 text=enter_copies_count_text,
                 reply_markup=previous_stepn_keyboard(f'back_step_user:image_back')
             )
             await state.set_state(OrderDetailsStates.number_copies)
             await state.update_data(file_info={'file_id': message.document.file_id, 'type': 'document'})
         else:
-            await bot.edit_message_text(
-                chat_id=message.from_user.id,
-                message_id=last_id_message,
+            await message.answer(
                 text=invalid_image_format_text,
                 reply_markup=previous_stepn_keyboard(f'order_confirm:{number_order}')
             )
+
+        await bot.delete_message(
+            chat_id=message.from_user.id,
+            message_id=last_id_message
+        )
+        
     except:
         return
     
@@ -152,10 +166,25 @@ async def back_step_user(callback: types.CallbackQuery, state: FSMContext):
     parametr = callback.data.split(':')[1]
     
     if parametr == 'image_back':
-        new_msg = await callback.message.edit_text(
-            text=add_image_instruction,
-            reply_markup=image_menu
-        )
+
+        # Данные
+        media, _ = get_media_by_index("user_image_example", 1)
+        text = add_image_instruction
+        keyboard = image_menu
+
+        if media:
+            try:
+                new_msg = await media.send(
+                    msg=callback.message,
+                    caption=text,
+                    reply_markup=keyboard
+                )
+            except Exception as e:
+                logging.error(f"Ошибка при отправке медиа: {e}")
+                new_msg = await callback.message.answer(text=text, reply_markup=image_exz_menu)
+        else:
+            new_msg = await callback.message.answer(text=text, reply_markup=image_menu)
+        await callback.message.delete()
         await state.set_state(OrderDetailsStates.image)
 
     elif parametr == 'return_copies':

@@ -49,7 +49,8 @@ def create_data_folders():
         'bot/data/user/paintings_metal_steps',
         'bot/data/admin/excel',
         'bot/data/admin/zip',
-        'bot/data/admin/qrcodes'
+        'bot/data/admin/qrcodes',
+        'bot/data/admin/user_image_example'
     ]
 
     # Создание базовых папок

@@ -1,8 +1,14 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-image_menu = InlineKeyboardMarkup(
+image_exz_menu = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="🔙 Меню", callback_data="back_menu")]
+    ]
+)
+
+image_menu = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="🔙 Меню", callback_data="back_menu:images")]
     ]
 )
 
