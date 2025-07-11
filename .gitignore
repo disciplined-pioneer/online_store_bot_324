@@ -4,18 +4,34 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Игнорируем файл хранения медиа
+# Игнорировать всё содержимое, кроме файла keep
+
 bot/data/user/media_store.json
 
-# Игнорируем вложенные папки
-bot/data/user/secret/
-bot/data/user/logs/
-bot/data/user/zip/
-bot/data/user/excel/
-bot/data/user/qrcodes/
-bot/data/user/custom_engraving/
-bot/data/user/paintings_metal/
-bot/data/user/paintings_metal_steps/
+bot/data/user/secret/*
+!bot/data/user/secret/keep
+
+bot/data/user/logs/*
+!bot/data/user/logs/keep
+
+bot/data/user/zip/*
+!bot/data/user/zip/keep
+
+bot/data/user/excel/*
+!bot/data/user/excel/keep
+
+bot/data/user/qrcodes/*
+!bot/data/user/qrcodes/keep
+
+bot/data/user/custom_engraving/*
+!bot/data/user/custom_engraving/keep
+
+bot/data/user/paintings_metal/*
+!bot/data/user/paintings_metal/keep
+
+bot/data/user/paintings_metal_steps/*
+!bot/data/user/paintings_metal_steps/keep
+
 
 # Исключение — сохраняем .gitkeep
 !bot/data/user/.gitkeep
