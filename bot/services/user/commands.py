@@ -39,18 +39,23 @@ async def save_or_update_user(tg_id, name):
         
 
 def create_data_folders():
-
+    
     """Создание папок для хранения файлов"""
 
-    base_path = 'bot/data'
-    folders = ['custom_engraving', 'paintings_metal', 'excel', 'zip', 'qrcodes']
+    base_paths = ['bot/data/admin', 'bot/data/user']
+    folders = [
+        'bot/data/user/custom_engraving',
+        'bot/data/user/paintings_metal',
+        'bot/data/user/paintings_metal_steps',
+        'bot/data/admin/excel',
+        'bot/data/admin/zip',
+        'bot/data/admin/qrcodes'
+    ]
 
-    # Создаем папку data, если нет
-    if not os.path.exists(base_path):
-        os.mkdir(base_path)
+    # Создание базовых папок
+    for base_path in base_paths:
+        os.makedirs(base_path, exist_ok=True)
 
-    # Создаем вложенные папки, если нет
+    # Создание вложенных папок
     for folder in folders:
-        path = os.path.join(base_path, folder)
-        if not os.path.exists(path):
-            os.mkdir(path)
+        os.makedirs(folder, exist_ok=True)

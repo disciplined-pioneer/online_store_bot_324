@@ -26,7 +26,7 @@ async def users(callback: CallbackQuery, state: FSMContext):
     df = await Users.get_users_without_orders()
 
     # Создаём папку, если её нет
-    output_dir = Path("bot/data/excel")
+    output_dir = Path("bot/data/admin/excel")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Уникальное имя файла — по tg_id пользователя
@@ -75,7 +75,7 @@ async def generate_referral(callback: CallbackQuery, state: FSMContext):
     await new_link.update(referral_link=link)
 
     # Генерируем QR-код
-    qr_path = Path(f"bot/data/qrcodes/ref_{callback.from_user.id}.png")
+    qr_path = Path(f"bot/data/admin/qrcodes/ref_{callback.from_user.id}.png")
     qr_path.parent.mkdir(parents=True, exist_ok=True)
     qr = qrcode.make(link)
     qr.save(qr_path)
@@ -140,7 +140,7 @@ async def clients(callback: CallbackQuery, state: FSMContext):
     df = pd.DataFrame(data)
 
     # Подготовка пути сохранения Excel
-    output_dir = Path("bot/data/excel")
+    output_dir = Path("bot/data/admin/excel")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     tg_id = callback.from_user.id

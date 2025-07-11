@@ -19,7 +19,7 @@ async def start_pagination(callback: CallbackQuery, state: FSMContext):
     last_id_message = data.get("last_id_message")
 
     index = 1
-    media, total = get_media_by_index("paintings_metal", index)
+    media, total = get_media_by_index("paintings_metal_steps", index)
     total = min(total, 3)  # Ограничиваем максимум до 3 файлов
 
     if not media:
@@ -51,7 +51,7 @@ async def paginate(callback: CallbackQuery, state: FSMContext):
 
     # Извлекаем номер страницы, изображения, количество
     index = int(callback.data.split(":")[1])
-    media, total = get_media_by_index("paintings_metal", index)
+    media, total = get_media_by_index("paintings_metal_steps", index)
     total = min(total, 3)
 
     # Если медиафайл не найден — информируем пользователя и выходим

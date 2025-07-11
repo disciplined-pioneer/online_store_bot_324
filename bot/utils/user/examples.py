@@ -8,7 +8,7 @@ from aiogram.types import Message, FSInputFile
 from aiogram import Bot
 
 # Путь к кэшу
-MEDIA_CACHE_PATH = "bot/data/media_store.json"
+MEDIA_CACHE_PATH = "bot/data/user/media_store.json"
 
 CATEGORIES = {
     "viewing:pictures": "paintings_metal",
@@ -92,7 +92,7 @@ def get_media_by_index(folder: str, index: int) -> Tuple[Optional[MediaWrapper],
     Работает только с медиафайлами, имя которых является числом.
     """
 
-    folder_path = os.path.join("bot", "data", folder)
+    folder_path = os.path.join("bot", "data", "user", folder)
     if not os.path.exists(folder_path):
         return None, 0
 
