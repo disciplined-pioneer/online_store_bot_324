@@ -1,3 +1,4 @@
+import logging
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
@@ -9,6 +10,7 @@ from ...utils.user.commands import process_start_payload
 from ...services.user.commands import save_or_update_user
 from ...templates.user.commands import hello_user_msg
 from ...keyboards.user.commands import start_user_keyb
+from ...utils.user.examples import get_media_by_index
 
 from ...templates.admin.commands import hello_admin_msg
 from ...keyboards.admin.commands import start_admin_keyb
@@ -21,38 +23,60 @@ router = Router()
 @router.message(Command("start", ignore_case=True))
 async def cmd_start(message: Message, state: FSMContext):
 
-    # Удаляем всю историю сообщений
+    # Удаление истории сообщений
     await message.delete()
     data = await state.get_data()
-    report_id = data["report"] if 'report' in data else message.message_id - 90
+    report_id = data.get("report", message.message_id - 90)
+
     try:
-        await bot.delete_messages(message.chat.id,
-                                    list(range(max(1, message.message_id - 90, report_id + 1), message.message_id + 1)))
+        await bot.delete_messages(
+            chat_id=message.chat.id,
+            message_ids=list(range(
+                max(1, message.message_id - 90, report_id + 1),
+                message.message_id + 1
+            ))
+        )
     except Exception:
         pass
 
-    # Добавляем пользователя/изменяем name
-    tg_id = tg_id=message.from_user.id
+    # Сохранение или обновление пользователя
+    tg_id = message.from_user.id
     name = message.from_user.full_name
     await save_or_update_user(tg_id=tg_id, name=name)
 
-    # Обработка реф. ссылки
+    # Обработка реферальной ссылки
     await process_start_payload(tg_id=tg_id, message=message)
 
-    # Информация о пользователе
-    info_users = await Users.get(tg_id=tg_id)
-    role = info_users.role
+    # Получение информации о пользователе
+    info_user = await Users.get(tg_id=tg_id)
+    role = info_user.role
 
-    if role == 'admin': # Админ
+    # Поведение для админа
+    if role == "admin":
         new_msg = await message.answer(
             text=hello_admin_msg,
             reply_markup=start_admin_keyb
         )
 
-    else: # Пользователь
-        new_msg = await message.answer(
-            text=hello_user_msg,
-            reply_markup=await start_user_keyb(bot)
-        )
-    
+    # Поведение для пользователя
+    else:
+        text = hello_user_msg
+        keyboard = await start_user_keyb(bot)
+
+        media, _ = get_media_by_index("additional_images", 1)
+
+        if media:
+            try:
+                new_msg = await media.send(
+                    msg=message,
+                    caption=text,
+                    reply_markup=keyboard
+                )
+            except Exception as e:
+                logging.error(f"Ошибка при отправке медиа пользователю: {e}")
+                new_msg = await message.answer(text=text, reply_markup=keyboard)
+        else:
+            new_msg = await message.answer(text=text, reply_markup=keyboard)
+
+    # Обновляем state
     await state.update_data(last_id_message=new_msg.message_id)

@@ -15,7 +15,8 @@ router = Router()
 @router.callback_query(F.data == "make_order")
 async def make_order(callback: CallbackQuery, state: FSMContext):
 
-    new_msg = await callback.message.edit_text(
+    await callback.message.delete()
+    new_msg = await callback.message.answer(
         text=order_instructions_msg,
         reply_markup=order_options_menu
     )

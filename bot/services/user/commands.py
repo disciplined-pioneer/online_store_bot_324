@@ -47,10 +47,10 @@ def create_data_folders():
         'bot/data/user/custom_engraving',
         'bot/data/user/paintings_metal',
         'bot/data/user/paintings_metal_steps',
+        'bot/data/user/additional_images',
         'bot/data/admin/excel',
         'bot/data/admin/zip',
-        'bot/data/admin/qrcodes',
-        'bot/data/admin/user_image_example'
+        'bot/data/admin/qrcodes'
     ]
 
     # Создание базовых папок

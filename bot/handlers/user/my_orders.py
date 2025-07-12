@@ -17,11 +17,11 @@ async def my_orders(callback: CallbackQuery, state: FSMContext):
     tg_id = callback.from_user.id
     orders = await OrderUsers.filter(tg_id=tg_id)
     if not orders:
-        await callback.message.edit_text(
+        await callback.message.answer(
             text=no_orders_user,
             reply_markup=back_menu
         )
-        await callback.answer()
+        await callback.message.delete()
         return
 
     index = 1
@@ -30,8 +30,8 @@ async def my_orders(callback: CallbackQuery, state: FSMContext):
     keyboard = create_orders_keyboard(index, len(orders))
 
     # Редактируем существующее сообщение (кнопка "Мои заказы" скорее всего в этом же сообщении)
-    await callback.message.edit_text(text, reply_markup=keyboard)
-    await callback.answer()
+    await callback.message.answer(text=text, reply_markup=keyboard)
+    await callback.message.delete()
 
 
 # Пагинация кнопки "Мои заявки"

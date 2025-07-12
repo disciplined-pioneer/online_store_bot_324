@@ -23,7 +23,7 @@ async def confirm_order(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     index = int(callback.data.split(":")[1])
     image_size = image_dict.get(str(index))
-    media, _ = get_media_by_index("user_image_example", 1)
+    media, _ = get_media_by_index("additional_images", 2)
     text = add_image_instruction
     keyboard = image_menu
     await callback.message.delete()
@@ -63,17 +63,21 @@ async def handle_document_image(message: Message, state: FSMContext):
     mime_type = message.document.mime_type
     try:
         if mime_type in ALLOWED_IMAGE_FORMATS:
-            await message.answer(
+            new_msg = await message.answer(
                 text=enter_copies_count_text,
                 reply_markup=previous_stepn_keyboard(f'back_step_user:image_back')
             )
             await state.set_state(OrderDetailsStates.number_copies)
-            await state.update_data(file_info={'file_id': message.document.file_id, 'type': 'document'})
+            await state.update_data(
+                file_info={'file_id': message.document.file_id, 'type': 'document'},
+                last_id_message=new_msg.message_id
+            )
         else:
-            await message.answer(
+            new_msg = await message.answer(
                 text=invalid_image_format_text,
                 reply_markup=previous_stepn_keyboard(f'order_confirm:{number_order}')
             )
+            await state.update_data(last_id_message=new_msg.message_id)
 
         await bot.delete_message(
             chat_id=message.from_user.id,
@@ -95,12 +99,15 @@ async def handle_photo(message: Message, state: FSMContext):
     last_id_message = data.get('last_id_message')
 
     try:
-        await bot.edit_message_text(
-            chat_id=message.from_user.id,
-            message_id=last_id_message,
+        new_message = await message.answer(
             text=invalid_image_text,
             reply_markup=previous_stepn_keyboard(f'order_confirm:{number_order}')
         )
+        await bot.delete_message(
+            chat_id=message.from_user.id,
+            message_id=last_id_message
+        )
+        await state.update_data(last_id_message=new_message.message_id)
     except:
         return
 
@@ -168,7 +175,7 @@ async def back_step_user(callback: types.CallbackQuery, state: FSMContext):
     if parametr == 'image_back':
 
         # Данные
-        media, _ = get_media_by_index("user_image_example", 1)
+        media, _ = get_media_by_index("additional_images", 2)
         text = add_image_instruction
         keyboard = image_menu
 

@@ -1,4 +1,4 @@
-add_image_instruction = 'Добавьте изображение в формате jpg, jpeg, png в сжатом виде, как в примере'
+add_image_instruction = 'Добавьте изображение в формате jpg, jpeg, png без сжатия, как в примере'
 
 invalid_image_format_text = (
     "❌ Разрешена загрузка только изображений в форматах:\n"

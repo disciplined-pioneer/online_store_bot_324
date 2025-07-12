@@ -1,7 +1,8 @@
 import os
 import zipfile
-import asyncio
 import shutil
+import asyncio
+import logging
 from pathlib import Path
 
 from bot.core.bot import bot
@@ -22,7 +23,7 @@ from aiogram.exceptions import TelegramBadRequest
 
 async def send_or_update_order_message(order: OrderUsers, bot, group_chat_id: int=settings.bot.CHANEL_ID):
 
-    ZIP_DIR = "bot/data/zip"
+    ZIP_DIR = "bot/data/admin/zip"
     try:
         # Удаляем предыдущее сообщение, если есть
         if order.last_id_message_group:
@@ -65,12 +66,15 @@ async def send_or_update_order_message(order: OrderUsers, bot, group_chat_id: in
                 for path in file_paths:
                     zipf.write(path, arcname=os.path.basename(path))
 
-            sent_message = await bot.send_document(
-                chat_id=group_chat_id,
-                document=FSInputFile(zip_path),
-                caption=text,
-                reply_markup=reply_markup
-            )
+            try:
+                sent_message = await bot.send_document(
+                    chat_id=group_chat_id,
+                    document=FSInputFile(zip_path),
+                    caption=text,
+                    reply_markup=reply_markup
+                )
+            except Exception as e:
+                logging.error(f"[ERROR] Ошибка при отправке сообщения в группу: {e}")
 
             # Удаляем все временные файлы и архив
             shutil.rmtree(user_dir, ignore_errors=True)
@@ -79,12 +83,15 @@ async def send_or_update_order_message(order: OrderUsers, bot, group_chat_id: in
 
         else:
             # Один файл — отправляем напрямую
-            sent_message = await bot.send_document(
-                chat_id=group_chat_id,
-                document=file_ids[0],
-                caption=text,
-                reply_markup=reply_markup
-            )
+            try:
+                sent_message = await bot.send_document(
+                    chat_id=group_chat_id,
+                    document=file_ids[0],
+                    caption=text,
+                    reply_markup=reply_markup
+                )
+            except Exception as e:
+                logging.error(f"[ERROR] Ошибка при отправке сообщения в группу: {e}")
 
         await order.update(last_id_message_group=sent_message.message_id)
         return sent_message.message_id

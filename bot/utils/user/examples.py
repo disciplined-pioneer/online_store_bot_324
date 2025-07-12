@@ -48,7 +48,6 @@ class MediaWrapper:
     async def send(self, msg: Message, reply_markup=None, caption: Optional[str] = None) -> Message:
         bot: Bot = msg.bot
 
-        # Попытка отправить по file_id
         if self.file_id:
             try:
                 if self.kind == "photo":
@@ -59,7 +58,8 @@ class MediaWrapper:
                     return await msg.answer_video(self.file_id, caption=caption, reply_markup=reply_markup)
             except Exception as e:
                 logging.warning(f"[ERROR] Failed to send by file_id: {self.file_id} — {e}")
-                self.file_id = None
+                self.file_id = None  # сбрасываем и пробуем загрузку с path
+
 
         if self.path:
             input_file = FSInputFile(self.path)
@@ -78,7 +78,11 @@ class MediaWrapper:
 
             folder = Path(self.path).parent.name
             filename = Path(self.path).stem
-            media_cache.setdefault(folder, {})[filename] = {"file_id": file_id}
+
+            media_cache.setdefault(folder, {})[filename] = {
+                "file_id": file_id,
+                "kind": self.kind  # ✅ сохраняем тип
+            }
             save_media_cache(media_cache)
 
             return sent
@@ -87,53 +91,40 @@ class MediaWrapper:
 
 
 def get_media_by_index(folder: str, index: int) -> Tuple[Optional[MediaWrapper], int]:
-    """
-    Получает объект MediaWrapper по номеру (1, 2, 3...) и общее количество файлов.
-    Работает только с медиафайлами, имя которых является числом.
-    """
-
-    folder_path = os.path.join("bot", "data", "user", folder)
-    if not os.path.exists(folder_path):
-        return None, 0
-
-    media_files = []
-    for file in os.listdir(folder_path):
-        stem = Path(file).stem
-        ext = Path(file).suffix[1:].lower()
-
-        if ext not in IMAGE_EXTENSIONS | ANIMATION_EXTENSIONS | VIDEO_EXTENSIONS:
-            continue
-
-        try:
-            int(stem)
-            media_files.append(file)
-        except ValueError:
-            continue
-
-    media_files.sort(key=lambda x: int(Path(x).stem))
-    total = len(media_files)
-
-    if index < 1 or index > total:
-        return None, total
-
-    filename = media_files[index - 1]
-    ext = filename.split(".")[-1].lower()
-    full_path = os.path.join(folder_path, filename)
-    key = Path(filename).stem
-
+    key = str(index)
     cached = media_cache.get(folder, {}).get(key)
 
-    if ext in IMAGE_EXTENSIONS:
-        kind = "photo"
-    elif ext in ANIMATION_EXTENSIONS:
-        kind = "animation"
-    elif ext in VIDEO_EXTENSIONS:
-        kind = "video"
-    else:
-        return None, total
+    folder_path = os.path.join("bot", "data", "user", folder)
+    path = None
+    kind = "video"  # fallback
 
-    if cached:
-        return MediaWrapper(kind=kind, file_id=cached.get("file_id"), path=full_path), total
-    else:
-        return MediaWrapper(kind=kind, path=full_path), total
+    if os.path.exists(folder_path):
+        for file in os.listdir(folder_path):
+            stem = Path(file).stem
+            ext = Path(file).suffix[1:].lower()
 
+            if ext not in IMAGE_EXTENSIONS | ANIMATION_EXTENSIONS | VIDEO_EXTENSIONS:
+                continue
+
+            try:
+                if int(stem) == index:
+                    path = os.path.join(folder_path, file)
+                    if ext in IMAGE_EXTENSIONS:
+                        kind = "photo"
+                    elif ext in ANIMATION_EXTENSIONS:
+                        kind = "animation"
+                    elif ext in VIDEO_EXTENSIONS:
+                        kind = "video"
+                    break
+            except ValueError:
+                continue
+
+    # Если есть кэш — пробуем file_id, но всё равно передаём path
+    if cached and cached.get("file_id"):
+        kind = cached.get("kind", kind)
+        return MediaWrapper(kind=kind, file_id=cached["file_id"], path=path), len(media_cache.get(folder, {}))
+
+    if path:
+        return MediaWrapper(kind=kind, path=path), 1
+
+    return None, 0
