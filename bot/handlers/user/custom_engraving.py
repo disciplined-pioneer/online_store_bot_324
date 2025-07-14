@@ -11,7 +11,7 @@ from ...core.bot import bot
 router = Router()
 
 
-# Обработка кнопки "Примеры"
+# Обработка кнопки "Сделать заказ"
 @router.callback_query(F.data == "make_order")
 async def make_order(callback: CallbackQuery, state: FSMContext):
 

@@ -97,34 +97,34 @@ def get_media_by_index(folder: str, index: int) -> Tuple[Optional[MediaWrapper],
     folder_path = os.path.join("bot", "data", "user", folder)
     path = None
     kind = "video"  # fallback
+    count = 0
 
     if os.path.exists(folder_path):
-        for file in os.listdir(folder_path):
-            stem = Path(file).stem
-            ext = Path(file).suffix[1:].lower()
+        valid_files = [
+            f for f in os.listdir(folder_path)
+            if Path(f).suffix[1:].lower() in (IMAGE_EXTENSIONS | ANIMATION_EXTENSIONS | VIDEO_EXTENSIONS)
+            and Path(f).stem.isdigit()
+        ]
+        count = len(valid_files)
 
-            if ext not in IMAGE_EXTENSIONS | ANIMATION_EXTENSIONS | VIDEO_EXTENSIONS:
-                continue
+        for file in valid_files:
+            if int(Path(file).stem) == index:
+                path = os.path.join(folder_path, file)
+                ext = Path(file).suffix[1:].lower()
+                if ext in IMAGE_EXTENSIONS:
+                    kind = "photo"
+                elif ext in ANIMATION_EXTENSIONS:
+                    kind = "animation"
+                elif ext in VIDEO_EXTENSIONS:
+                    kind = "video"
+                break
 
-            try:
-                if int(stem) == index:
-                    path = os.path.join(folder_path, file)
-                    if ext in IMAGE_EXTENSIONS:
-                        kind = "photo"
-                    elif ext in ANIMATION_EXTENSIONS:
-                        kind = "animation"
-                    elif ext in VIDEO_EXTENSIONS:
-                        kind = "video"
-                    break
-            except ValueError:
-                continue
-
-    # Если есть кэш — пробуем file_id, но всё равно передаём path
+    # Если есть кэш — используем его
     if cached and cached.get("file_id"):
         kind = cached.get("kind", kind)
-        return MediaWrapper(kind=kind, file_id=cached["file_id"], path=path), len(media_cache.get(folder, {}))
+        return MediaWrapper(kind=kind, file_id=cached["file_id"], path=path), count
 
     if path:
-        return MediaWrapper(kind=kind, path=path), 1
+        return MediaWrapper(kind=kind, path=path), count
 
-    return None, 0
+    return None, count
