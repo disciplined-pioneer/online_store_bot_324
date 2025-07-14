@@ -1,5 +1,6 @@
 import os
 import logging
+from ...core.bot import bot
 from ...db.models.models import Users
 from ...settings import settings
 
@@ -19,10 +20,9 @@ async def add_admins():
             )
             logging.info(f"Роль пользователя '{tg_id}' изменена на 'admin'")
 
-async def save_or_update_user(tg_id, name):
+async def save_or_update_user(tg_id, name, referral_code = None):
 
     """Добавляет пользователей из настроек, если их нет в БД."""
-
     try:
         info_user = await Users.get(tg_id=tg_id)
         if info_user:
@@ -30,9 +30,14 @@ async def save_or_update_user(tg_id, name):
                 name=name
             )
         else:
+            link = None
+            if referral_code:
+                bot_username = (await bot.get_me()).username
+                link = f"https://t.me/{bot_username}?start={referral_code}"
             await Users.create(
                 tg_id=tg_id,
-                name=name
+                name=name,
+                ref_links=link
             )
     except Exception as e:
         logging.error(f'Пользователь {tg_id} не был добавлен: {e}')

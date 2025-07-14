@@ -8,11 +8,11 @@ async def process_start_payload(message: Message, tg_id: int):
     обрабатывает его как ID реферальной ссылки.
     """
     if not message.text or await Users.get(tg_id=tg_id):
-        return
+        return None
 
     parts = message.text.strip().split()
     if len(parts) != 2 or parts[0].lower() != "/start":
-        return
+        return None
 
     payload = parts[1]
 
@@ -23,7 +23,11 @@ async def process_start_payload(message: Message, tg_id: int):
         info_link = await ReferralLinks.get(id=payload_id)
         if info_link:
             await info_link.update(number_users=info_link.number_users + 1)
+            return payload_id
+        
     except ValueError:
         logging.error(f"[ERROR] payload не является числом: {payload}")
     except Exception as e:
         logging.error(f"[ERROR] Ошибка при обработке payload: {e}")
+    
+    return None

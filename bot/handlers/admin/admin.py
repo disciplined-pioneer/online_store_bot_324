@@ -132,6 +132,7 @@ async def clients(callback: CallbackQuery, state: FSMContext):
         data.append({
             "Telegram ID": user.tg_id,
             "Ник": user.name or "-",
+            "Реф. ссылка": user.ref_links,
             "Дата регистрации": user.date_registration.strftime("%Y-%m-%d %H:%M"),
             "Список заказов": str(formatted_orders)
         })

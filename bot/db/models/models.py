@@ -211,6 +211,10 @@ class Users(Base, ModelAdmin):
         default=False,
         comment='Были ли заказы'
     )
+    ref_links: Mapped[str | None] =  mapped_column(
+        default=None,
+        comment='Реф. ссылка, по которой перешёл пользователь'
+    )
     date_registration: Mapped[datetime] = mapped_column(default=now_moscow)
 
     @classmethod
@@ -226,10 +230,11 @@ class Users(Base, ModelAdmin):
 
             data = [
                 {
-                    "tg_id": u.tg_id,
-                    "name": u.name,
-                    "role": u.role,
-                    "date_registration": u.date_registration
+                    "Telegram ID": u.tg_id,
+                    "Имя": u.name,
+                    "Роль": u.role,
+                    "Реф. ссылка": u.ref_links,
+                    "Дата регистрации": u.date_registration
                 }
                 for u in users
             ]

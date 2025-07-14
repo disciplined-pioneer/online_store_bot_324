@@ -42,10 +42,10 @@ async def cmd_start(message: Message, state: FSMContext):
     # Сохранение или обновление пользователя
     tg_id = message.from_user.id
     name = message.from_user.full_name
-    await save_or_update_user(tg_id=tg_id, name=name)
 
     # Обработка реферальной ссылки
-    await process_start_payload(tg_id=tg_id, message=message)
+    referral_code = await process_start_payload(tg_id=tg_id, message=message)
+    await save_or_update_user(tg_id=tg_id, name=name, referral_code=referral_code)
 
     # Получение информации о пользователе
     info_user = await Users.get(tg_id=tg_id)
