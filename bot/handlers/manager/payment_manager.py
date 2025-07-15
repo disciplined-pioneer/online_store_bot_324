@@ -21,6 +21,7 @@ router = Router()
 async def send_user(callback: types.CallbackQuery, state: FSMContext):
 
     # Данные
+    await callback.message.edit_reply_markup(reply_markup=None)
     data_list = callback.data.split(":")
     user_id = int(data_list[1])
     order_id = int(data_list[2])
@@ -36,7 +37,6 @@ async def send_user(callback: types.CallbackQuery, state: FSMContext):
     )
 
     await callback.message.answer(text=user_notified_msg(user_id))
-    await callback.message.delete()
 
 
 # Обработка кнопки "Оповестить"
